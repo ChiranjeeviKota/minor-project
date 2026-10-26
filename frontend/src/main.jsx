@@ -5,7 +5,7 @@ import{Activity,BrainCircuit,Network,Users,Search,Download,FlaskConical,RefreshC
 import{ResponsiveContainer,BarChart,Bar,XAxis,YAxis,Tooltip,CartesianGrid,PieChart,Pie,Cell}from'recharts';
 import'./style.css';
 
-const API='http://127.0.0.1:8000/api';
+const API='/api';
 const colors=['#7dd3b0','#8ea9ff','#f3c47a'];
 const diagnosisColors={'Healthy':colors[0],'MCI':colors[1],"Alzheimer's":colors[2]};
 function App(){
