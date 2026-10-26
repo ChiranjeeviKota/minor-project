@@ -32,3 +32,15 @@ Demo login: `demo` / `demo`.
 
 ## Research caution
 The included sample dataset is synthetic and for demonstration only. Cognitive-domain graphs and model outputs are research prototypes, not clinically validated tools and must not be used for diagnosis or treatment decisions.
+
+
+## Deploy the full application to Vercel
+
+This repository includes a Vercel configuration at the repository root, a Python serverless entry point at `api/index.py`, the React/Vite frontend in `frontend/`, and the FastAPI application in `backend/`.
+
+1. Import this GitHub repository into Vercel.
+2. Set **Root Directory** to `./` (repository root).
+3. Use the included `vercel.json` settings. The frontend build output is `frontend/dist`.
+4. Deploy. The frontend calls API endpoints using relative `/api` paths.
+
+**Storage note:** SQLite on Vercel uses temporary serverless storage; changes may not persist. Configure a managed database using `DATABASE_URL` for durable records. The bundled patient data is synthetic and this is not a clinical diagnostic tool. Test the deployment after publishing.
