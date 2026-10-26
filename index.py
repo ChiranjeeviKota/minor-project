@@ -47,6 +47,159 @@ def init_db():
     db.close()
 init_db()
 
+# Account access: PBKDF2 password hashes and signed, HTTP-only sessions.
+import hashlib, hmac, secrets, time, base64, json
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+def auth_tables():
+    db=connect()
+    db.execute("""CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'analyst', created_at TEXT NOT NULL)""")
+    db.commit()
+    # Optional first-admin bootstrap. Set both values as Vercel environment variables.
+    admin_email=os.getenv("PSN_ADMIN_EMAIL","").strip().lower()
+    admin_password=os.getenv("PSN_ADMIN_PASSWORD","")
+    if admin_email and admin_password and len(admin_password)>=12:
+        row=db.execute("SELECT id FROM users WHERE email=?",(admin_email,)).fetchone()
+        if not row:
+            db.execute("INSERT INTO users(name,email,password_hash,role,created_at) VALUES(?,?,?,?,?)",
+              ("PSN Administrator",admin_email,hash_password(admin_password),"admin",date.today().isoformat()))
+            db.commit()
+    db.close()
+
+def hash_password(password, salt=None):
+    salt=salt or secrets.token_bytes(16)
+    digest=hashlib.pbkdf2_hmac("sha256",password.encode(),salt,310000)
+    return base64.urlsafe_b64encode(salt).decode()+"$"+base64.urlsafe_b64encode(digest).decode()
+
+def verify_password(password, encoded):
+    try:
+        salt_b64,digest_b64=encoded.split("$",1)
+        salt=base64.urlsafe_b64decode(salt_b64.encode())
+        expected=base64.urlsafe_b64decode(digest_b64.encode())
+        actual=hashlib.pbkdf2_hmac("sha256",password.encode(),salt,310000)
+        return hmac.compare_digest(actual,expected)
+    except Exception: return False
+
+def session_secret():
+    secret=os.getenv("PSN_SESSION_SECRET","")
+    if len(secret)<32: return None
+    return secret.encode()
+
+def make_session(user_id):
+    secret=session_secret()
+    if not secret: raise HTTPException(503,"Authentication is not configured. Set PSN_SESSION_SECRET to a random value of at least 32 characters.")
+    payload=f"{user_id}.{int(time.time())+60*60*12}"
+    sig=hmac.new(secret,payload.encode(),hashlib.sha256).hexdigest()
+    return payload+"."+sig
+
+def current_user_from_cookie(cookie):
+    secret=session_secret()
+    if not secret or not cookie: return None
+    try:
+        user_id,expires,sig=cookie.split(".",2)
+        payload=user_id+"."+expires
+        expected=hmac.new(secret,payload.encode(),hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig,expected) or int(expires)<int(time.time()): return None
+        db=connect()
+        row=db.execute("SELECT id,name,email,role,created_at FROM users WHERE id=?",(int(user_id),)).fetchone()
+        db.close()
+        return dict(row) if row else None
+    except Exception: return None
+
+@app.middleware("http")
+async def require_account(request: Request, call_next):
+    path=request.url.path
+    if path.startswith("/api/") and path not in ("/api/health","/api/auth/login","/api/auth/register","/api/auth/me","/api/auth/logout"):
+        user=current_user_from_cookie(request.cookies.get("psn_session"))
+        if not user: return JSONResponse(status_code=401,content={"detail":"Please sign in to continue."})
+        if path.startswith("/api/admin/") and user["role"]!="admin":
+            return JSONResponse(status_code=403,content={"detail":"Admin access required."})
+    return await call_next(request)
+
+class RegisterIn(BaseModel):
+    name: str = Field(min_length=2,max_length=80)
+    email: str = Field(min_length=5,max_length=254)
+    password: str = Field(min_length=10,max_length=128)
+
+class LoginIn(BaseModel):
+    email: str = Field(min_length=5,max_length=254)
+    password: str = Field(min_length=1,max_length=128)
+
+@app.post("/api/auth/register")
+def register_account(data:RegisterIn):
+    email=data.email.strip().lower()
+    if "@" not in email or "." not in email.rsplit("@",1)[-1]:
+        raise HTTPException(400,"Enter a valid email address.")
+    if len(data.password)<10:
+        raise HTTPException(400,"Use a password with at least 10 characters.")
+    db=connect()
+    try:
+        cur=db.execute("INSERT INTO users(name,email,password_hash,role,created_at) VALUES(?,?,?,?,?)",
+          (data.name.strip(),email,hash_password(data.password),"analyst",date.today().isoformat()))
+        db.commit()
+        user_id=cur.lastrowid
+    except sqlite3.IntegrityError:
+        raise HTTPException(409,"An account with this email already exists.")
+    finally: db.close()
+    token=make_session(user_id)
+    response=JSONResponse({"ok":True,"user":current_user_from_cookie(token)})
+    response.set_cookie("psn_session",token,httponly=True,secure=bool(os.getenv("VERCEL")),samesite="strict",max_age=43200,path="/")
+    return response
+
+@app.post("/api/auth/login")
+def login_account(data:LoginIn):
+    email=data.email.strip().lower()
+    db=connect()
+    row=db.execute("SELECT id,password_hash FROM users WHERE email=?",(email,)).fetchone()
+    db.close()
+    if not row or not verify_password(data.password,row["password_hash"]):
+        raise HTTPException(401,"Email or password is incorrect.")
+    token=make_session(row["id"])
+    response=JSONResponse({"ok":True,"user":current_user_from_cookie(token)})
+    response.set_cookie("psn_session",token,httponly=True,secure=bool(os.getenv("VERCEL")),samesite="strict",max_age=43200,path="/")
+    return response
+
+@app.get("/api/auth/me")
+def auth_me(request:Request):
+    user=current_user_from_cookie(request.cookies.get("psn_session"))
+    return {"user":user}
+
+@app.post("/api/auth/logout")
+def logout_account():
+    response=JSONResponse({"ok":True})
+    response.delete_cookie("psn_session",path="/")
+    return response
+
+@app.get("/api/admin/users")
+def admin_users():
+    db=connect()
+    rows=db.execute("SELECT id,name,email,role,created_at FROM users ORDER BY id DESC").fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+class RoleIn(BaseModel):
+    role: str
+
+@app.patch("/api/admin/users/{user_id}/role")
+def change_user_role(user_id:int,data:RoleIn):
+    if data.role not in ("admin","analyst"): raise HTTPException(400,"Role must be admin or analyst.")
+    db=connect()
+    exists=db.execute("SELECT id FROM users WHERE id=?",(user_id,)).fetchone()
+    if not exists: db.close(); raise HTTPException(404,"Account not found.")
+    if data.role=="analyst":
+        admins=db.execute("SELECT COUNT(*) FROM users WHERE role='admin'").fetchone()[0]
+        current=db.execute("SELECT role FROM users WHERE id=?",(user_id,)).fetchone()["role"]
+        if current=="admin" and admins<=1: db.close(); raise HTTPException(400,"Keep at least one admin account.")
+    db.execute("UPDATE users SET role=? WHERE id=?",(data.role,user_id)); db.commit(); db.close()
+    return {"ok":True}
+
+auth_tables()
+
+
 def all_patients():
     db=connect()
     rows=db.execute("SELECT * FROM patients ORDER BY id").fetchall()
@@ -234,13 +387,13 @@ async def import_csv(file:UploadFile=File(...)):
 
 HTML = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Patient Similarity Network</title><style>
 :root{color-scheme:dark;--bg:#0b1020;--line:#263650;--muted:#9eabc2;--text:#edf3ff;--mint:#7dd3b0;--blue:#8ea9ff;--gold:#f3c47a}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#15233a,var(--bg) 58%);font:14px/1.5 system-ui,sans-serif;color:var(--text)}main{max-width:1150px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}h1{margin:0;font-size:28px}h2{font-size:17px}.muted,small{color:var(--muted)}.notice{padding:12px;border:1px solid #55472b;background:#28251d;color:#ead9ad;border-radius:12px;margin:16px 0}.nav,.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}button,.btn,select,input{border:1px solid var(--line);background:#172238;color:var(--text);border-radius:8px;padding:10px;cursor:pointer}button.active,.primary{background:#b9f3dd;color:#10271f;font-weight:bold}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.card,section{background:#121b2e;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}.card strong{display:block;font-size:28px}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:560px}td,th{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted)}.hidden{display:none}.metric{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}.bar{height:7px;background:#28354b;margin:5px 0 10px;border-radius:9px;overflow:hidden}.bar span{display:block;height:100%;background:var(--blue)}.patientgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.patient{display:flex;flex-direction:column;align-items:flex-start;width:100%}@media(max-width:750px){.cards{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.patientgrid{grid-template-columns:repeat(2,1fr)}}@media(max-width:450px){.patientgrid{grid-template-columns:1fr}main{padding:12px}}
-</style></head><body><main><header><div><h1>Patient Similarity Network</h1><div class="muted">Cognitive networks · Alzheimer’s research prototype</div></div><b style="color:var(--mint)">● API-POWERED DEMO</b></header><div class="notice">Academic research demo only. Records shown by default are synthetic. Not clinically validated; do not use for diagnosis or treatment decisions.</div><nav class="nav"><button class="active" data-tab="overview">Overview</button><button data-tab="network">Patient Network</button><button data-tab="patients">Patient Explorer</button><button data-tab="analytics">Phase 2 Analytics</button><button data-tab="longitudinal">Phase 3 Follow-ups</button><button data-tab="research">Research Lab</button></nav><div id="error" class="notice hidden"></div><div id="overview"><div class="cards" id="stats"></div><div class="two"><section><h2>Cohort distribution</h2><div id="distribution"></div></section><section><h2>Quick actions</h2><p class="muted">Explore profiles, compare cognitive-domain similarity, inspect network relationships and export records.</p><button class="primary" onclick="tab('patients')">Explore patients</button> <button onclick="load()">Refresh</button> <button onclick="location.href='/api/export-csv'">Export CSV</button><p id="mean" class="muted"></p></section></div></div><div id="network" class="hidden"><section><h2>Patient similarity network</h2><p class="muted">Each node is a patient; lines connect profiles with high cognitive similarity. Click a node to open its profile.</p><div class="toolbar"><button onclick="drawNetwork()">Refresh network</button><span class="muted">Green = Healthy · Blue = MCI · Gold = Alzheimer's</span></div><div style="width:100%;overflow:auto"><svg id="networkGraph" viewBox="0 0 900 500" role="img" aria-label="Interactive patient similarity network" style="display:block;width:100%;min-width:600px;height:auto;border-radius:10px;background:#0d1525"></svg></div><div id="networkgrid" class="patientgrid" style="margin-top:12px"></div></section></div>
+</style></head><body><div id="authScreen" style="position:fixed;inset:0;z-index:1000;background:#080d19ee;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto"><section style="width:min(440px,100%);margin:auto"><div style="font-size:12px;letter-spacing:2px;color:var(--mint);font-weight:700">PSN RESEARCH HUB</div><h1 style="margin:8px 0 4px">Welcome to PSN</h1><p class="muted">Sign in to your secure Study Analyst Workspace.</p><div class="nav"><button id="loginMode" class="primary" type="button" onclick="authMode('login')">Sign in</button><button id="registerMode" type="button" onclick="authMode('register')">Create account</button></div><form id="authForm" onsubmit="submitAuth(event)"><label id="nameWrap" class="hidden">Full name<br><input name="name" minlength="2" maxlength="80" autocomplete="name" style="width:100%;margin:6px 0 12px"></label><label>Email<br><input name="email" type="email" required autocomplete="email" style="width:100%;margin:6px 0 12px"></label><label>Password<br><input name="password" type="password" minlength="10" required autocomplete="current-password" style="width:100%;margin:6px 0 12px"></label><button id="authSubmit" class="primary" type="submit" style="width:100%">Sign in</button><p id="authMessage" class="muted" role="status"></p></form><small>Use only synthetic demo records. Do not upload real patient data to this prototype.</small></section></div><main id="appShell" style="display:none"><header><div><h1>PSN Research Hub</h1><div class="muted">Patient Similarity Network · Alzheimer’s cognitive network prototype</div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span id="signedInAs" class="muted"></span><button id="adminButton" class="hidden" onclick="tab('admin')">Admin Console</button><button onclick="logout()">Sign out</button></div></header><div class="notice">Academic research demo only. Records shown by default are synthetic. Not clinically validated; do not use for diagnosis or treatment decisions.</div><nav class="nav"><button class="active" data-tab="overview">Overview</button><button data-tab="network">Patient Network</button><button data-tab="patients">Patient Explorer</button><button data-tab="analytics">Phase 2 Analytics</button><button data-tab="longitudinal">Phase 3 Follow-ups</button><button data-tab="research">Analysis Lab</button><button id="adminNav" class="hidden" data-tab="admin">Admin Console</button></nav><div id="error" class="notice hidden"></div><div id="admin" class="hidden"><section><h2>PSN Admin Console</h2><p class="muted">Manage Study Analyst accounts and access roles.</p><button class="primary" onclick="loadAdminUsers()">Refresh accounts</button><div id="adminUsers" style="margin-top:12px"></div></section></div><div id="overview"><div class="cards" id="stats"></div><div class="two"><section><h2>Cohort distribution</h2><div id="distribution"></div></section><section><h2>Quick actions</h2><p class="muted">Explore profiles, compare cognitive-domain similarity, inspect network relationships and export records.</p><button class="primary" onclick="tab('patients')">Explore patients</button> <button onclick="load()">Refresh</button> <button onclick="location.href='/api/export-csv'">Export CSV</button><p id="mean" class="muted"></p></section></div></div><div id="network" class="hidden"><section><h2>Patient similarity network</h2><p class="muted">Each node is a patient; lines connect profiles with high cognitive similarity. Click a node to open its profile.</p><div class="toolbar"><button onclick="drawNetwork()">Refresh network</button><span class="muted">Green = Healthy · Blue = MCI · Gold = Alzheimer's</span></div><div style="width:100%;overflow:auto"><svg id="networkGraph" viewBox="0 0 900 500" role="img" aria-label="Interactive patient similarity network" style="display:block;width:100%;min-width:600px;height:auto;border-radius:10px;background:#0d1525"></svg></div><div id="networkgrid" class="patientgrid" style="margin-top:12px"></div></section></div>
 <div id="patients" class="hidden"><section><h2>Phase 1 · Register a patient</h2><p class="muted">Add an assessment profile with MMSE, MoCA and seven cognitive-domain scores.</p><form id="patientForm" onsubmit="addPatient(event)"><div class="toolbar"><input name="patient_code" required maxlength="40" placeholder="Patient code (e.g. P201)"><input name="age" type="number" min="18" max="120" required value="65" style="width:95px"><select name="sex"><option>Female</option><option>Male</option><option>Other</option><option>Unknown</option></select><select name="diagnosis"><option>Healthy</option><option selected>MCI</option><option>Alzheimer's</option></select><input name="mmse" type="number" min="0" max="30" step="0.1" required value="24" placeholder="MMSE" style="width:95px"><input name="moca" type="number" min="0" max="30" step="0.1" required value="20" placeholder="MoCA" style="width:95px"></div><div class="toolbar"><label>Memory <input name="memory" type="number" min="0" max="100" step="0.1" required value="50" style="width:82px"></label><label>Attention <input name="attention" type="number" min="0" max="100" step="0.1" required value="50" style="width:82px"></label><label>Executive <input name="executive" type="number" min="0" max="100" step="0.1" required value="50" style="width:82px"></label><label>Language <input name="language" type="number" min="0" max="100" step="0.1" required value="50" style="width:82px"></label><label>Visuospatial <input name="visuospatial" type="number" min="0" max="100" step="0.1" required value="50" style="width:82px"></label><label>Processing speed <input name="processing_speed" type="number" min="0" max="100" step="0.1" required value="50" style="width:82px"></label><label>Orientation <input name="orientation" type="number" min="0" max="100" step="0.1" required value="50" style="width:82px"></label></div><button class="primary" type="submit">Register patient</button> <span id="formStatus" class="muted" role="status"></span></form></section><section><h2>Patient explorer</h2><div class="toolbar"><input id="q" placeholder="Search patient code" oninput="renderPatients()"><select id="filter" onchange="renderPatients()"><option>All</option><option>Healthy</option><option>MCI</option><option>Alzheimer's</option></select><button onclick="location.href='/api/export-csv'">Export CSV</button><label class="btn">Import CSV<input type="file" accept=".csv" hidden onchange="importFile(this)"></label></div><div class="tablewrap"><table><thead><tr><th>Patient</th><th>Age</th><th>Diagnosis</th><th>MMSE</th><th>MoCA</th><th></th></tr></thead><tbody id="rows"></tbody></table></div></section><div class="two"><section><h2>Selected profile</h2><div id="profile" class="muted">Choose Compare on a patient.</div></section><section><h2>Closest similar patients</h2><div id="similar" class="muted">Choose a patient to compare.</div></section></div></div>
 <div id="analytics" class="hidden"><section><h2>Phase 2 · Similarity analysis</h2><p class="muted">Compare cognitive profiles using multiple methods and adjust the minimum score.</p><div class="toolbar"><label>Patient <select id="analysisPatient"></select></label><label>Method <select id="simMethod"><option value="weighted">Weighted distance</option><option value="cosine">Cosine similarity</option><option value="euclidean">Euclidean similarity</option></select></label><label>Minimum score <input id="simThreshold" type="number" min="0" max="100" value="75" style="width:90px"></label><button class="primary" onclick="runSimilarity()">Compare profiles</button></div><div id="similarityResults" class="muted">Choose settings and run a comparison.</div></section><div class="two"><section><h2>K-means clustering</h2><div class="toolbar"><label>Clusters <select id="clusterCount"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label><button onclick="runClusters()">Run clustering</button></div><div id="clusterResults" class="muted"></div></section><section><h2>Evaluation metrics</h2><button onclick="runPhase2()">Calculate metrics</button><div id="evaluationResults" class="muted" style="margin-top:10px"></div></section></div><section><h2>Domain feature contribution</h2><div id="featureImportance" class="muted">Run evaluation to view weighted contributions.</div></section><section><h2>Graph statistics</h2><div class="toolbar"><label>Edge threshold <input id="graphThreshold" type="number" min="0" max="100" value="85" style="width:90px"></label><button onclick="runGraphFeatures()">Calculate graph features</button></div><div id="graphResults" class="muted"></div></section></div>
 <div id="longitudinal" class="hidden"><section><h2>Phase 3 · Longitudinal cognitive visits</h2><p class="muted">Record follow-up assessments and review changes over time.</p><form id="visitForm" onsubmit="addVisit(event)"><div class="toolbar"><label>Patient <select id="visitPatient" name="patient_id" required onchange="loadVisits()"></select></label><label>Visit date <input name="visit_date" type="date" required></label><label>MMSE <input name="mmse" type="number" min="0" max="30" step="0.1" value="24" required style="width:85px"></label><label>MoCA <input name="moca" type="number" min="0" max="30" step="0.1" value="20" required style="width:85px"></label></div><div class="toolbar"><label>Memory <input name="memory" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Attention <input name="attention" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Executive <input name="executive" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Language <input name="language" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Visuospatial <input name="visuospatial" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Processing speed <input name="processing_speed" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Orientation <input name="orientation" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label></div><button class="primary" type="submit">Save follow-up visit</button> <span id="visitStatus" class="muted" role="status"></span></form></section><section><h2>Visit history and progression</h2><div id="visitHistory" class="muted">Select a patient to load visit history.</div><div id="progression" style="margin-top:12px"></div></section><section><h2>Cognitive-domain network</h2><p class="muted">Explore the patient similarity network and graph statistics.</p><button onclick="tab('network')">Open patient network</button></section></div>
 <div id="research" class="hidden"><div class="cards" id="researchcards"></div><section><h2>Research summary</h2><p class="muted">Exploratory metrics on synthetic demo records; not clinical evidence.</p><div id="researchtext"></div><button onclick="load()">Refresh summary</button> <button onclick="runPhase2()">Run evaluation</button><div id="researchSummary" style="margin-top:12px"></div></section></div><div id="analytics" class="hidden"><section><h2>Phase 2 · Similarity analysis</h2><p class="muted">Compare profiles with weighted, cosine or Euclidean similarity and tune the match threshold.</p><div class="toolbar"><label>Patient <select id="analysisPatient"></select></label><label>Method <select id="simMethod"><option value="weighted">Weighted distance</option><option value="cosine">Cosine similarity</option><option value="euclidean">Euclidean similarity</option></select></label><label>Minimum score <input id="simThreshold" type="number" min="0" max="100" value="75" style="width:90px"></label><button class="primary" onclick="runSimilarity()">Compare profiles</button></div><div id="similarityResults" class="muted">Choose settings and run a comparison.</div></section><div class="two"><section><h2>K-means clustering</h2><p class="muted">Group cognitive profiles without using diagnosis labels.</p><div class="toolbar"><label>Clusters <select id="clusterCount"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label><button onclick="runClusters()">Run clustering</button></div><div id="clusterResults" class="muted"></div></section><section><h2>Evaluation metrics</h2><button onclick="runPhase2()">Calculate metrics</button><div id="evaluationResults" class="muted" style="margin-top:10px"></div></section></div><section><h2>Domain feature contribution</h2><div id="featureImportance" class="muted">Run evaluation to view weighted contributions.</div></section><section><h2>Graph statistics</h2><div class="toolbar"><label>Edge threshold <input id="graphThreshold" type="number" min="0" max="100" value="85" style="width:90px"></label><button onclick="runGraphFeatures()">Calculate graph features</button></div><div id="graphResults" class="muted"></div></section></div><div id="longitudinal" class="hidden"><section><h2>Phase 3 · Longitudinal cognitive visits</h2><p class="muted">Record follow-up assessments for the same patient and review score trends over time.</p><form id="visitForm" onsubmit="addVisit(event)"><div class="toolbar"><label>Patient <select id="visitPatient" name="patient_id" required onchange="loadVisits()"></select></label><label>Visit date <input name="visit_date" type="date" required></label><label>MMSE <input name="mmse" type="number" min="0" max="30" step="0.1" value="24" required style="width:85px"></label><label>MoCA <input name="moca" type="number" min="0" max="30" step="0.1" value="20" required style="width:85px"></label></div><div class="toolbar"><label>Memory <input name="memory" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Attention <input name="attention" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Executive <input name="executive" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Language <input name="language" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Visuospatial <input name="visuospatial" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Processing speed <input name="processing_speed" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label><label>Orientation <input name="orientation" type="number" min="0" max="100" step="0.1" value="50" required style="width:82px"></label></div><button class="primary" type="submit">Save follow-up visit</button> <span id="visitStatus" class="muted" role="status"></span></form></section><section><h2>Visit history and progression</h2><div id="visitHistory" class="muted">Select a patient to load visit history.</div><div id="progression" style="margin-top:12px"></div></section><section><h2>Cognitive-domain network features</h2><p class="muted">The patient network connects profiles above the similarity threshold. Graph statistics are available under Phase 2 Analytics.</p><button onclick="tab(this.dataset.target)" data-target="network">Open patient network</button></section></div></main><script>
-let patients=[],stats={};const domains=['memory','attention','executive','language','visuospatial','processing_speed','orientation'];const colors={Healthy:'var(--mint)',MCI:'var(--blue)',"Alzheimer's":'var(--gold)'};
-function tab(n){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===n));['overview','network','patients','analytics','longitudinal','research'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==n));if(n==='longitudinal')loadVisits();if(n==='analytics')runPhase2();if(n==='network')drawNetwork()}
+let patients=[],stats={},currentUser=null,authModeValue='login';const domains=['memory','attention','executive','language','visuospatial','processing_speed','orientation'];const colors={Healthy:'var(--mint)',MCI:'var(--blue)',"Alzheimer's":'var(--gold)'};
+function tab(n){if(n==='admin'&&currentUser?.role!=='admin')return;document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===n));['overview','network','patients','analytics','longitudinal','research','admin'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==n));if(n==='longitudinal')loadVisits();if(n==='analytics')runPhase2();if(n==='network')drawNetwork()}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 async function get(u){let r=await fetch(u);if(!r.ok)throw Error((await r.text()).slice(0,150));return r.json()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -260,8 +413,15 @@ async function addPatient(e){e.preventDefault();const form=e.currentTarget;const
 async function drawNetwork(){const svg=document.getElementById('networkGraph');if(!svg)return;try{const data=await get('/api/network');const nodes=data.nodes.slice(0,45);const map=new Map(nodes.map((n,i)=>{const a=2*Math.PI*i/nodes.length-Math.PI/2;return[n.id,{...n,x:450+195*Math.cos(a),y:250+195*Math.sin(a)}]}));const edges=data.edges.filter(e=>map.has(e.source)&&map.has(e.target));const lines=edges.map(e=>{const a=map.get(e.source),b=map.get(e.target);return '<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke="#607aa4" stroke-opacity=".45" stroke-width="'+(1+(e.weight-85)/8)+'"><title>Similarity '+e.weight+'%</title></line>'}).join('');const circles=nodes.map(n=>{const p=map.get(n.id),c=colors[n.diagnosis]||'#8ea9ff';return '<g onclick="selectPatient('+n.id+')" style="cursor:pointer"><circle cx="'+p.x+'" cy="'+p.y+'" r="10" fill="'+c+'" stroke="#eef4ff" stroke-width="1.5"><title>'+esc(n.label)+' · '+esc(n.diagnosis)+'</title></circle><text x="'+p.x+'" y="'+(p.y+24)+'" text-anchor="middle" fill="#dce6f7" font-size="10">'+esc(n.label)+'</text></g>'}).join('');svg.innerHTML='<rect width="900" height="500" fill="#0d1525" rx="10"/>'+lines+circles}catch(e){svg.innerHTML='<text x="20" y="35" fill="#f3c47a">Network could not load: '+esc(e.message)+'</text>'}}
 async function selectPatient(id){let p=patients.find(x=>x.id===id);if(!p)return;tab('patients');document.getElementById('profile').innerHTML='<h3>'+esc(p.patient_code)+' · '+p.age+' years</h3><p>'+esc(p.sex)+' · '+esc(p.diagnosis)+'</p>'+domains.map(d=>'<div class="metric"><span>'+d.replace('_',' ')+'</span><b>'+p[d]+'</b></div><div class="bar"><span style="width:'+p[d]+'%"></span></div>').join('');try{let sim=await get('/api/patients/'+id+'/similar');document.getElementById('similar').innerHTML=sim.map(x=>'<div class="metric"><span>'+esc(x.patient_code)+' · '+esc(x.diagnosis)+'</span><b>'+x.similarity+'%</b></div>').join('')||'No other patients yet'}catch(e){document.getElementById('similar').textContent=e.message}}
 async function importFile(input){let f=input.files[0];if(!f)return;let d=new FormData();d.append('file',f);try{let r=await fetch('/api/import-csv',{method:'POST',body:d});if(!r.ok)throw Error(await r.text());let x=await r.json();await load();alert('Imported '+x.added+' records')}catch(e){alert('CSV import failed: '+e.message)}input.value=''}
-load();
-drawNetwork();
+
+function authMode(mode){authModeValue=mode;document.getElementById('nameWrap').classList.toggle('hidden',mode!=='register');document.querySelector('#authForm [name=name]').required=mode==='register';document.getElementById('authSubmit').textContent=mode==='register'?'Create account':'Sign in';document.getElementById('loginMode').classList.toggle('primary',mode==='login');document.getElementById('registerMode').classList.toggle('primary',mode==='register');document.getElementById('authMessage').textContent='';document.querySelector('#authForm [name=password]').autocomplete=mode==='register'?'new-password':'current-password';}
+async function checkAuth(){try{const d=await get('/api/auth/me');if(d.user){currentUser=d.user;showApp()}else{document.getElementById('authScreen').style.display='flex';document.getElementById('appShell').style.display='none'}}catch(e){document.getElementById('authMessage').textContent=e.message}}
+function showApp(){document.getElementById('authScreen').style.display='none';document.getElementById('appShell').style.display='block';document.getElementById('signedInAs').textContent=currentUser.name+' · '+(currentUser.role==='admin'?'Administrator':'Study Analyst');const isAdmin=currentUser.role==='admin';document.getElementById('adminButton').classList.toggle('hidden',!isAdmin);document.getElementById('adminNav').classList.toggle('hidden',!isAdmin);load();drawNetwork()}
+async function submitAuth(e){e.preventDefault();const form=e.currentTarget;const data=Object.fromEntries(new FormData(form).entries());const msg=document.getElementById('authMessage');msg.textContent='Please wait…';try{const r=await fetch('/api/auth/'+(authModeValue==='register'?'register':'login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.detail||'Authentication failed');currentUser=d.user;showApp()}catch(err){msg.textContent=err.message}}
+async function logout(){await fetch('/api/auth/logout',{method:'POST'});currentUser=null;document.getElementById('appShell').style.display='none';document.getElementById('authScreen').style.display='flex';authMode('login')}
+async function loadAdminUsers(){if(currentUser?.role!=='admin')return;const out=document.getElementById('adminUsers');out.textContent='Loading accounts…';try{const users=await get('/api/admin/users');out.innerHTML=users.length?'<div class="tablewrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Change role</th></tr></thead><tbody>'+users.map(u=>'<tr><td>'+esc(u.name)+'</td><td>'+esc(u.email)+'</td><td>'+esc(u.role)+'</td><td>'+esc(u.created_at)+'</td><td><select onchange="setRole('+u.id+',this.value)"><option value="analyst" '+(u.role==='analyst'?'selected':'')+'>Study Analyst</option><option value="admin" '+(u.role==='admin'?'selected':'')+'>Administrator</option></select></td></tr>').join('')+'</tbody></table></div>':'No accounts found.'}catch(e){out.textContent=e.message}}
+async function setRole(id,role){try{const r=await fetch('/api/admin/users/'+id+'/role',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({role})});const d=await r.json();if(!r.ok)throw Error(d.detail||'Could not change role');await loadAdminUsers()}catch(e){alert(e.message);await loadAdminUsers()}}
+checkAuth();
 </script></body></html>"""
 
 @app.get("/", response_class=HTMLResponse)
