@@ -658,7 +658,7 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
 @media(max-width:700px){#overview .brain-visual{min-height:270px}#overview .brain-svg{width:118%}}
 @media(prefers-reduced-motion:reduce){#overview .brain-svg,#overview .brain-svg g path,#overview .brain-svg circle,#overview .brain-orbit,#overview .brain-visual:before{animation:none!important}}
 
-/* Premium cool-water sidebar with a quiet neural current along the bottom */
+/* Premium cool-water sidebar with subtle flowing water; no neural footer */
 @media(min-width:951px){
   main{max-width:none;margin:0;padding:24px 34px 110px 286px}
   header{min-height:70px}
@@ -675,32 +675,23 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
     background:
       radial-gradient(ellipse at 50% 0%,rgba(73,151,187,.15),transparent 42%),
       radial-gradient(ellipse at 8% 55%,rgba(49,156,171,.08),transparent 42%),
-      radial-gradient(ellipse at 55% 100%,rgba(51,170,183,.12),transparent 39%),
-      radial-gradient(circle at 12% 90%,rgba(120,220,230,.58) 0 1px,transparent 1.8px),
-      radial-gradient(circle at 27% 95%,rgba(120,220,230,.46) 0 1px,transparent 1.8px),
-      radial-gradient(circle at 44% 89%,rgba(120,220,230,.54) 0 1.2px,transparent 2px),
-      radial-gradient(circle at 62% 96%,rgba(120,220,230,.42) 0 1px,transparent 1.8px),
-      radial-gradient(circle at 78% 90%,rgba(120,220,230,.58) 0 1px,transparent 1.8px),
-      radial-gradient(circle at 91% 95%,rgba(120,220,230,.42) 0 1px,transparent 1.8px),
-      linear-gradient(23deg,transparent 0 88.8%,rgba(83,188,205,.18) 89%,transparent 89.4%),
-      linear-gradient(-17deg,transparent 0 90.8%,rgba(83,188,205,.14) 91%,transparent 91.4%);
-    background-size:100% 100%;
+      radial-gradient(ellipse at 55% 100%,rgba(51,170,183,.08),transparent 39%);
   }
   .nav[aria-label="Main navigation"]:after{
-    content:"";position:absolute;z-index:-1;pointer-events:none;left:-28%;right:-28%;bottom:-4%;
-    height:38%;opacity:.8;
+    content:"";position:absolute;z-index:-1;pointer-events:none;inset:-12% -45%;
+    opacity:.62;
     background:
-      radial-gradient(ellipse at 50% 100%,rgba(41,161,183,.18),transparent 65%),
-      repeating-linear-gradient(172deg,transparent 0 19px,rgba(89,193,208,.055) 20px,rgba(195,241,246,.16) 21px,transparent 23px 42px),
-      linear-gradient(165deg,transparent 20%,rgba(94,200,216,.02) 40%,rgba(124,222,230,.19) 51%,rgba(73,170,196,.05) 57%,transparent 76%);
-    filter:blur(.25px);
-    transform:translate3d(-4%,0,0) skewY(-3deg);
-    animation:psnCoolCurrent 12s cubic-bezier(.42,0,.58,1) infinite;
+      radial-gradient(ellipse at 25% 35%,rgba(77,183,204,.07),transparent 36%),
+      repeating-linear-gradient(164deg,transparent 0 32px,rgba(91,195,210,.045) 34px,rgba(177,231,237,.12) 36px,rgba(76,167,190,.045) 39px,transparent 43px 72px),
+      linear-gradient(112deg,transparent 30%,rgba(86,192,208,.035) 42%,rgba(124,222,230,.11) 49%,rgba(73,170,196,.035) 56%,transparent 68%);
+    filter:blur(.35px);
+    transform:translate3d(-7%,1%,0) skewY(-5deg);
+    animation:psnWaterFlow 16s ease-in-out infinite;
   }
-  @keyframes psnCoolCurrent{
-    0%{transform:translate3d(-4%,0,0) skewY(-3deg);background-position:0 0,0 0,0 0;opacity:.48}
-    50%{transform:translate3d(4%,-5px,0) skewY(2deg);background-position:0 0,0 24px,0 0;opacity:.84}
-    100%{transform:translate3d(-4%,0,0) skewY(-3deg);background-position:0 0,0 48px,0 0;opacity:.48}
+  @keyframes psnWaterFlow{
+    0%{transform:translate3d(-7%,1%,0) skewY(-5deg);background-position:0 0,0 0,0 0;opacity:.42}
+    50%{transform:translate3d(5%,-1%,0) skewY(3deg);background-position:0 0,0 55px,30px 0;opacity:.72}
+    100%{transform:translate3d(-7%,1%,0) skewY(-5deg);background-position:0 0,0 110px,0 0;opacity:.42}
   }
   .nav[aria-label="Main navigation"] button{
     position:relative;z-index:1;flex:0 0 auto;width:100%;min-height:47px;text-align:left;
