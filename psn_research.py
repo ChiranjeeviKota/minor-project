@@ -191,6 +191,7 @@ def build_advanced_router(connect,all_patients,similarity,domains):
     def get_csv_template():
         return Response(csv_template(domains),media_type="text/csv; charset=utf-8",
           headers={"Content-Disposition":'attachment; filename="psn-import-template.csv"'})
+    add_v2_routes(router, all_patients, similarity, domains)
     return router
 
 def advanced_ui_script() -> str:
