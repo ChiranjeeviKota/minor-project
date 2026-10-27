@@ -413,7 +413,49 @@ button,.btn,select,input,textarea{font:inherit;border:1px solid #30415c;backgrou
 @media(max-width:650px){main{padding:12px 12px 100px}.brand-mark{width:40px;height:40px}.brand h1{font-size:17px}.hero{grid-template-columns:1fr;padding:25px 21px;border-radius:22px}.hero h2{font-size:35px}.hero p{font-size:14px}.hero-art{display:none}.hero-kpis{gap:7px}.hero-kpi strong{font-size:20px}.hero-kpi span{font-size:10px}.cards{gap:9px}.card{padding:15px;border-radius:16px}.card strong{font-size:27px}.two,.feature-grid{grid-template-columns:1fr}.patientgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.nav{display:none}.bottom-nav{position:fixed;z-index:50;bottom:10px;left:10px;right:10px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:7px;background:#101a2bed;border:1px solid #34435d;border-radius:18px;box-shadow:0 14px 40px #0008;backdrop-filter:blur(20px)}.bottom-nav button{background:transparent;border:0;color:#aebbd0;padding:8px 2px;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}.bottom-nav button span{font-size:18px;line-height:1.2}.bottom-nav button.active{background:#d5fff0;color:#0b3026;border-radius:12px}.site-footer{flex-direction:column;align-items:flex-start}.section-heading{align-items:flex-start;flex-direction:column}.toolbar input{min-width:0}.admin-stats{grid-template-columns:1fr}.admin-hero{align-items:flex-start;flex-direction:column}.directory-head{align-items:flex-start;flex-direction:column}}
 @media(max-width:380px){.patientgrid{grid-template-columns:1fr}.hero h2{font-size:30px}.hero-kpi strong{font-size:18px}}
 
-</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>Patient Similarity Network — Research Summary</h1><p>Generated """+date.today().isoformat()+""" · Synthetic demo records</p><div class="grid"><div class="card">Total records<br><b>"""+str(st["total"])+"""</b></div><div class="card">Healthy cohort<br><b>"""+str(st["healthy"])+"""</b></div><div class="card">MCI cohort<br><b>"""+str(st["mci"])+"""</b></div><div class="card">Alzheimer’s cohort<br><b>"""+str(st["alzheimers"])+"""</b></div><div class="card">Mean MMSE<br><b>"""+str(st["mean_mmse"])+"""/30</b></div><div class="card">Network edges ≥85%<br><b>"""+str(gf["edges"])+"""</b></div></div><h2>Exploratory clustering evaluation</h2><p>Silhouette score: """+str(ev.get("silhouette"))+""" · Records: """+str(ev.get("patients"))+"""</p><p>"""+str(ev.get("note",""))+"""</p><h2>Patient summary</h2><table><thead><tr><th>Patient code</th><th>Cohort label</th><th>MMSE</th><th>MoCA</th></tr></thead><tbody>"""+rows+"""</tbody></table><p class="note"><b>Important:</b> Academic research prototype. Records are synthetic by default; metrics are exploratory and not clinically validated. Not a diagnosis and must not guide treatment decisions.</p></body></html>""")
+
+/* FINAL FIX: ensure the animated brain is mounted visibly in the Home hero */
+#psn-neural-bg{z-index:0!important}
+#appShell, #authScreen{position:relative;z-index:1}
+#overview>.hero{position:relative}
+#overview>.hero>.brain-visual{
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ grid-column:2;grid-row:1;min-width:0;min-height:340px;width:100%;
+ align-self:stretch;position:relative;z-index:2;overflow:hidden;
+}
+#overview>.hero>.brain-visual .brain-svg{display:block!important;visibility:visible!important;opacity:1!important;width:116%;max-width:700px;height:auto}
+@media(max-width:1050px){#overview>.hero>.brain-visual{grid-column:2;grid-row:1;min-height:280px}}
+@media(max-width:700px){#overview>.hero>.brain-visual{grid-column:1;grid-row:2;min-height:270px}}
+</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>Patient Similarity Network — Research Summary</h1><p>Generated """+date.today().isoformat()+""" · Synthetic demo records</p><div class="grid"><div class="card">Total records<br><b>"""+str(st["total"])+"""</b></div><div class="card">Healthy cohort<br><b>"""+str(st["healthy"])+"""</b></div><div class="card">MCI cohort<br><b>"""+str(st["mci"])+"""</b></div><div class="card">Alzheimer’s cohort<br><b>"""+str(st["alzheimers"])+"""</b></div><div class="card">Mean MMSE<br><b>"""+str(st["mean_mmse"])+"""/30</b></div><div class="card">Network edges ≥85%<br><b>"""+str(gf["edges"])+"""</b></div></div><h2>Exploratory clustering evaluation</h2><p>Silhouette score: """+str(ev.get("silhouette"))+""" · Records: """+str(ev.get("patients"))+"""</p><p>"""+str(ev.get("note",""))+"""</p><h2>Patient summary</h2><table><thead><tr><th>Patient code</th><th>Cohort label</th><th>MMSE</th><th>MoCA</th></tr></thead><tbody>"""+rows+"""</tbody></table><p class="note"><b>Important:</b> Academic research prototype. Records are synthetic by default; metrics are exploratory and not clinically validated. Not a diagnosis and must not guide treatment decisions.</p>
+<script>
+/* FINAL FIX: mount a guaranteed visible brain graphic in Home after all layout scripts. */
+(function(){
+ function mountPSNBrain(){
+  const overview=document.getElementById('overview');
+  const hero=overview&&overview.querySelector('.hero');
+  if(!hero)return;
+  let visual=hero.querySelector('.brain-visual');
+  if(!visual){
+   const source=document.querySelector('#analytics .brain-visual');
+   if(source){visual=source.cloneNode(true);hero.appendChild(visual);}
+  }
+  if(visual){
+   visual.style.setProperty('display','flex','important');
+   visual.style.setProperty('visibility','visible','important');
+   visual.style.setProperty('opacity','1','important');
+   visual.style.setProperty('min-height',window.innerWidth<700?'270px':'340px','important');
+   visual.style.setProperty('grid-column',window.innerWidth<700?'1':'2');
+   visual.style.setProperty('grid-row',window.innerWidth<700?'2':'1');
+   const svg=visual.querySelector('.brain-svg');
+   if(svg){svg.style.setProperty('display','block','important');svg.style.setProperty('visibility','visible','important');svg.style.setProperty('opacity','1','important');}
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountPSNBrain);
+ else mountPSNBrain();
+ window.addEventListener('load',mountPSNBrain,{once:true});
+})();
+</script>
+</body></html>""")
     return HTMLResponse(html)
 
 @app.get("/api/export-csv")
