@@ -658,7 +658,7 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
 @media(max-width:700px){#overview .brain-visual{min-height:270px}#overview .brain-svg{width:118%}}
 @media(prefers-reduced-motion:reduce){#overview .brain-svg,#overview .brain-svg g path,#overview .brain-svg circle,#overview .brain-orbit,#overview .brain-visual:before{animation:none!important}}
 
-/* Premium water-flow sidebar: bright aqua glass, silky flowing light ribbons */
+/* Premium cool-water sidebar with a quiet neural current along the bottom */
 @media(min-width:951px){
   main{max-width:none;margin:0;padding:24px 34px 110px 286px}
   header{min-height:70px}
@@ -666,54 +666,63 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
     position:fixed;z-index:80;left:16px;top:16px;bottom:16px;width:238px;
     display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
     gap:8px;padding:20px 13px 18px;overflow:hidden;isolation:isolate;
-    border:1px solid rgba(114,211,231,.58);border-radius:25px;
-    background:linear-gradient(155deg,rgba(246,254,255,.98),rgba(222,247,252,.97) 48%,rgba(239,249,255,.98));
-    box-shadow:0 22px 65px rgba(16,110,153,.17),inset 0 1px 0 rgba(255,255,255,.98),inset 0 0 28px rgba(113,223,234,.16);
+    border:1px solid rgba(119,184,207,.27);border-radius:25px;
+    background:linear-gradient(155deg,rgba(18,32,49,.98),rgba(12,25,41,.98) 52%,rgba(15,30,47,.99));
+    box-shadow:0 24px 68px rgba(0,0,0,.26),inset 0 1px 0 rgba(226,245,255,.08),inset 0 0 32px rgba(67,153,183,.07);
   }
   .nav[aria-label="Main navigation"]:before{
     content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
     background:
-      radial-gradient(ellipse at 12% 12%,rgba(95,221,239,.36),transparent 38%),
-      radial-gradient(ellipse at 94% 40%,rgba(117,197,255,.27),transparent 42%),
-      radial-gradient(ellipse at 28% 92%,rgba(69,225,210,.22),transparent 42%);
+      radial-gradient(ellipse at 50% 0%,rgba(73,151,187,.15),transparent 42%),
+      radial-gradient(ellipse at 8% 55%,rgba(49,156,171,.08),transparent 42%),
+      radial-gradient(ellipse at 55% 100%,rgba(51,170,183,.12),transparent 39%),
+      radial-gradient(circle at 12% 90%,rgba(120,220,230,.58) 0 1px,transparent 1.8px),
+      radial-gradient(circle at 27% 95%,rgba(120,220,230,.46) 0 1px,transparent 1.8px),
+      radial-gradient(circle at 44% 89%,rgba(120,220,230,.54) 0 1.2px,transparent 2px),
+      radial-gradient(circle at 62% 96%,rgba(120,220,230,.42) 0 1px,transparent 1.8px),
+      radial-gradient(circle at 78% 90%,rgba(120,220,230,.58) 0 1px,transparent 1.8px),
+      radial-gradient(circle at 91% 95%,rgba(120,220,230,.42) 0 1px,transparent 1.8px),
+      linear-gradient(23deg,transparent 0 88.8%,rgba(83,188,205,.18) 89%,transparent 89.4%),
+      linear-gradient(-17deg,transparent 0 90.8%,rgba(83,188,205,.14) 91%,transparent 91.4%);
+    background-size:100% 100%;
   }
   .nav[aria-label="Main navigation"]:after{
-    content:"";position:absolute;z-index:-1;pointer-events:none;left:-48%;right:-48%;top:-40%;
-    height:185%;opacity:.86;
+    content:"";position:absolute;z-index:-1;pointer-events:none;left:-28%;right:-28%;bottom:-4%;
+    height:38%;opacity:.8;
     background:
-      radial-gradient(ellipse at 50% 48%,rgba(255,255,255,.42),transparent 42%),
-      repeating-linear-gradient(164deg,transparent 0 31px,rgba(37,174,206,.09) 32px,rgba(255,255,255,.46) 34px,transparent 36px 67px),
-      linear-gradient(115deg,transparent 26%,rgba(255,255,255,.72) 44%,rgba(76,210,221,.19) 49%,rgba(255,255,255,.56) 53%,transparent 70%);
+      radial-gradient(ellipse at 50% 100%,rgba(41,161,183,.18),transparent 65%),
+      repeating-linear-gradient(172deg,transparent 0 19px,rgba(89,193,208,.055) 20px,rgba(195,241,246,.16) 21px,transparent 23px 42px),
+      linear-gradient(165deg,transparent 20%,rgba(94,200,216,.02) 40%,rgba(124,222,230,.19) 51%,rgba(73,170,196,.05) 57%,transparent 76%);
     filter:blur(.25px);
-    transform:translate3d(-10%,-4%,0) rotate(-12deg);
-    animation:psnWaterRibbon 14s cubic-bezier(.42,0,.58,1) infinite;
+    transform:translate3d(-4%,0,0) skewY(-3deg);
+    animation:psnCoolCurrent 12s cubic-bezier(.42,0,.58,1) infinite;
   }
-  @keyframes psnWaterRibbon{
-    0%{transform:translate3d(-10%,-4%,0) rotate(-12deg);background-position:0 0,0 0,0 0}
-    50%{transform:translate3d(8%,2%,0) rotate(-8deg);background-position:0 70px,0 95px,0 0}
-    100%{transform:translate3d(-10%,-4%,0) rotate(-12deg);background-position:0 140px,0 190px,0 0}
+  @keyframes psnCoolCurrent{
+    0%{transform:translate3d(-4%,0,0) skewY(-3deg);background-position:0 0,0 0,0 0;opacity:.48}
+    50%{transform:translate3d(4%,-5px,0) skewY(2deg);background-position:0 0,0 24px,0 0;opacity:.84}
+    100%{transform:translate3d(-4%,0,0) skewY(-3deg);background-position:0 0,0 48px,0 0;opacity:.48}
   }
   .nav[aria-label="Main navigation"] button{
     position:relative;z-index:1;flex:0 0 auto;width:100%;min-height:47px;text-align:left;
-    display:flex;align-items:center;padding:12px 14px;border:1px solid rgba(75,157,181,.10);border-radius:14px;
-    background:rgba(255,255,255,.45);color:#31566c;font-size:13px;letter-spacing:.12px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.64);
+    display:flex;align-items:center;padding:12px 14px;border:1px solid rgba(133,177,203,.08);border-radius:14px;
+    background:rgba(24,43,63,.60);color:#bdcede;font-size:13px;letter-spacing:.12px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
     transition:background .28s,border-color .28s,color .28s,transform .28s,box-shadow .28s;
   }
   .nav[aria-label="Main navigation"] button:hover{
-    background:rgba(255,255,255,.88);border-color:rgba(38,166,194,.38);color:#123c54;
-    transform:translateX(3px);box-shadow:0 7px 18px rgba(34,139,164,.10),inset 0 1px 0 #fff;
+    background:rgba(48,83,105,.48);border-color:rgba(102,203,215,.22);color:#f0fbff;
+    transform:translateX(2px);box-shadow:0 6px 18px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.04);
   }
   .nav[aria-label="Main navigation"] button.active{
-    color:#073b50;background:linear-gradient(105deg,rgba(115,234,223,.68),rgba(157,220,255,.72) 58%,rgba(255,255,255,.82));
-    border-color:rgba(46,174,194,.48);box-shadow:inset 3px 0 0 #18b7c6,0 8px 22px rgba(43,167,190,.16),inset 0 1px 0 rgba(255,255,255,.95);
+    color:#e6fbff;background:linear-gradient(105deg,rgba(43,145,160,.26),rgba(64,119,155,.24) 58%,rgba(52,79,111,.34));
+    border-color:rgba(107,208,219,.26);box-shadow:inset 2px 0 0 rgba(113,224,224,.9),0 7px 20px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.035);
   }
   .nav[aria-label="Main navigation"] button.active:after{
-    content:"";width:6px;height:6px;border-radius:50%;margin-left:auto;
-    background:#08aebd;box-shadow:0 0 0 4px rgba(8,174,189,.12),0 0 12px rgba(8,174,189,.48);
-    animation:psnWaterPulse 3.6s ease-in-out infinite;
+    content:"";width:5px;height:5px;border-radius:50%;margin-left:auto;
+    background:#83dfe0;box-shadow:0 0 9px rgba(110,225,225,.56);
+    animation:psnCurrentPulse 3.8s ease-in-out infinite;
   }
-  @keyframes psnWaterPulse{0%,100%{opacity:.65;transform:scale(.9)}50%{opacity:1;transform:scale(1.12)}}
+  @keyframes psnCurrentPulse{0%,100%{opacity:.5;transform:scale(.88)}50%{opacity:1;transform:scale(1.1)}}
   .nav[aria-label="Main navigation"] button#adminNav{margin-top:auto}
 }
 @media(max-width:950px){
