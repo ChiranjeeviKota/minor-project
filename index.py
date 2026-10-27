@@ -428,7 +428,7 @@ button,.btn,select,input,textarea{font:inherit;border:1px solid #30415c;backgrou
 @media(max-width:700px){#overview>.hero>.brain-visual{grid-column:1;grid-row:2;min-height:270px}}
 
 /* Visibility hardening: icons and animated brain in the actual dashboard sidebar/Home hero */
-#appShell>.nav button[data-tab] .nav-icon{display:inline-flex!important;visibility:visible!important;opacity:1!important;width:24px!important;height:24px!important;flex:0 0 24px!important;color:#79cfff!important}
+#appShell>.nav button[data-tab] .nav-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;visibility:visible!important;opacity:1!important;width:27px!important;height:27px!important;flex:0 0 27px!important;color:#83dfff!important;background:rgba(42,151,255,.12)!important;border:1px solid rgba(75,177,255,.25)!important;border-radius:9px!important}
 #appShell>.nav button[data-tab] .nav-icon svg{display:block!important;visibility:visible!important;opacity:1!important;width:22px!important;height:22px!important;stroke:currentColor!important}
 #appShell>.nav button[data-tab]{gap:13px!important;padding-left:16px!important}
 #appShell>.nav button[data-tab].active .nav-icon{color:#c0fff5!important;filter:drop-shadow(0 0 7px #30cfff99)!important}
