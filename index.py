@@ -732,17 +732,62 @@ async function setRole(id,role){try{const r=await fetch('/api/admin/users/'+id+'
 currentUser={name:'Guest',role:'analyst'};showApp();
 </script>
 <script>
-document.addEventListener('DOMContentLoaded',function(){
- const overview=document.getElementById('overview'); if(!overview)return;
- const hero=overview.querySelector('.hero'), brain=overview.querySelector('.brain-network-feature');
- if(!hero||!brain)return;
- const art=brain.querySelector('.brain-visual'); if(art)hero.appendChild(art);
- const oldArt=hero.querySelector('.hero-art'); if(oldArt)oldArt.remove();
- const copy=hero.querySelector(':scope > div:first-child');
- if(copy){copy.querySelector('.eyebrow').textContent='COGNITIVE ANALYSIS WORKSPACE';copy.querySelector('h2').innerHTML='Brain Network <span class="hero-accent">Insights</span>';copy.querySelector('p').textContent='Explore cognitive patterns, patient similarities and network relationships using advanced analytics and machine learning.';const kpis=copy.querySelector('.hero-kpis');if(kpis)kpis.remove();const actions=copy.querySelector('.hero-actions');if(actions){actions.innerHTML='<button class="primary" onclick="tab(\'analytics\')">Open Cognitive Analysis &nbsp; →</button><button onclick="tab(\'network\')">♧ &nbsp; Explore Patient Network</button>'}}
- const rail=document.createElement('div');rail.className='hero-feature-rail';rail.innerHTML='<div class="hero-feature"><span class="hero-feature-icon">⌘</span><div><b>Similarity Analysis</b><small>Find similar patients using multiple similarity metrics.</small></div></div><div class="hero-feature"><span class="hero-feature-icon">✿</span><div><b>K-means Clustering</b><small>Discover patient groups and patterns using ML clustering.</small></div></div><div class="hero-feature"><span class="hero-feature-icon">♧</span><div><b>Graph Metrics</b><small>Analyze network structure and connectivity.</small></div></div><div class="hero-feature"><span class="hero-feature-icon">♧</span><div><b>Cognitive Patterns</b><small>Explore MMSE, MoCA and cognitive feature contributions.</small></div></div>';
- hero.appendChild(rail);brain.remove();
-});
+(function(){
+ function mountHomeBrain(){
+  const overview=document.getElementById('overview');
+  const hero=overview&&overview.querySelector('.hero');
+  if(!hero)return;
+  // The source brain is inside Analytics, NOT inside Overview. Clone it into Home.
+  let art=hero.querySelector('.brain-visual');
+  if(!art){
+   const source=document.querySelector('#analytics .brain-network-feature .brain-visual')||document.querySelector('.brain-network-feature .brain-visual');
+   if(source){
+    art=source.cloneNode(true);
+    // Keep SVG definition IDs unique when both Home and Analytics show the brain.
+    const idMap=new Map();
+    art.querySelectorAll('[id]').forEach(el=>{const old=el.id;const next='home-'+old;idMap.set(old,next);el.id=next});
+    art.querySelectorAll('*').forEach(el=>{
+     for(const attr of Array.from(el.attributes||[])){
+      let value=attr.value;
+      for(const [old,next] of idMap){
+       value=value.replaceAll('url(#'+old+')','url(#'+next+')');
+       if((attr.name==='href'||attr.name==='xlink:href')&&value==='#'+old)value='#'+next;
+      }
+      if(value!==attr.value)el.setAttribute(attr.name,value);
+     }
+    });
+    hero.appendChild(art);
+   }
+  }
+  if(!art)return;
+  art.style.setProperty('display','flex','important');
+  art.style.setProperty('visibility','visible','important');
+  art.style.setProperty('opacity','1','important');
+  art.style.setProperty('min-height',window.innerWidth<=700?'270px':'340px','important');
+  art.style.setProperty('grid-column',window.innerWidth<=700?'1':'2','important');
+  art.style.setProperty('grid-row',window.innerWidth<=700?'2':'1','important');
+  const svg=art.querySelector('svg');
+  if(svg){svg.style.setProperty('display','block','important');svg.style.setProperty('visibility','visible','important');svg.style.setProperty('opacity','1','important')}
+  const oldArt=hero.querySelector('.hero-art');if(oldArt)oldArt.remove();
+  const copy=hero.querySelector(':scope > div:first-child');
+  if(copy){
+   const eyebrow=copy.querySelector('.eyebrow');if(eyebrow)eyebrow.textContent='COGNITIVE ANALYSIS WORKSPACE';
+   const heading=copy.querySelector('h2');if(heading)heading.innerHTML='Brain Network <span class="hero-accent">Insights</span>';
+   const paragraph=copy.querySelector('p');if(paragraph)paragraph.textContent='Explore cognitive patterns, patient similarities and network relationships using advanced analytics and machine learning.';
+   const kpis=copy.querySelector('.hero-kpis');if(kpis)kpis.remove();
+   const actions=copy.querySelector('.hero-actions');
+   if(actions)actions.innerHTML='<button class="primary" onclick="tab(\'analytics\')">Open Cognitive Analysis &nbsp; →</button><button onclick="tab(\'network\')">♧ &nbsp; Explore Patient Network</button>';
+  }
+  if(!hero.querySelector('.hero-feature-rail')){
+   const rail=document.createElement('div');rail.className='hero-feature-rail';
+   rail.innerHTML='<div class="hero-feature"><span class="hero-feature-icon">⌘</span><div><b>Similarity Analysis</b><small>Find similar patients using multiple similarity metrics.</small></div></div><div class="hero-feature"><span class="hero-feature-icon">✿</span><div><b>K-means Clustering</b><small>Discover patient groups and patterns using ML clustering.</small></div></div><div class="hero-feature"><span class="hero-feature-icon">♧</span><div><b>Graph Metrics</b><small>Analyze network structure and connectivity.</small></div></div><div class="hero-feature"><span class="hero-feature-icon">♧</span><div><b>Cognitive Patterns</b><small>Explore MMSE, MoCA and cognitive feature contributions.</small></div></div>';
+   hero.appendChild(rail);
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountHomeBrain,{once:true});else mountHomeBrain();
+ window.addEventListener('load',mountHomeBrain);
+ window.addEventListener('resize',function(){const art=document.querySelector('#overview>.hero .brain-visual');if(art){art.style.setProperty('min-height',window.innerWidth<=700?'270px':'340px','important');art.style.setProperty('grid-column',window.innerWidth<=700?'1':'2','important');art.style.setProperty('grid-row',window.innerWidth<=700?'2':'1','important')}});
+})();
 </script>
 <script>
 (function(){
