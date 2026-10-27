@@ -658,56 +658,62 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
 @media(max-width:700px){#overview .brain-visual{min-height:270px}#overview .brain-svg{width:118%}}
 @media(prefers-reduced-motion:reduce){#overview .brain-svg,#overview .brain-svg g path,#overview .brain-svg circle,#overview .brain-orbit,#overview .brain-visual:before{animation:none!important}}
 
-/* Premium neural sidebar: restrained luminous pathways, slow signal flow, soft glass */
+/* Premium water-flow sidebar: bright aqua glass, silky flowing light ribbons */
 @media(min-width:951px){
   main{max-width:none;margin:0;padding:24px 34px 110px 286px}
   header{min-height:70px}
   .nav[aria-label="Main navigation"]{
     position:fixed;z-index:80;left:16px;top:16px;bottom:16px;width:238px;
     display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
-    gap:7px;padding:20px 13px 18px;overflow:hidden;isolation:isolate;
-    border:1px solid rgba(145,180,226,.20);border-radius:24px;
-    background:linear-gradient(160deg,rgba(12,23,41,.98),rgba(7,14,27,.98) 68%,rgba(10,20,37,.98));
-    box-shadow:0 28px 80px rgba(0,0,0,.44),inset 0 1px 0 rgba(255,255,255,.055);
+    gap:8px;padding:20px 13px 18px;overflow:hidden;isolation:isolate;
+    border:1px solid rgba(114,211,231,.58);border-radius:25px;
+    background:linear-gradient(155deg,rgba(246,254,255,.98),rgba(222,247,252,.97) 48%,rgba(239,249,255,.98));
+    box-shadow:0 22px 65px rgba(16,110,153,.17),inset 0 1px 0 rgba(255,255,255,.98),inset 0 0 28px rgba(113,223,234,.16);
   }
   .nav[aria-label="Main navigation"]:before{
-    content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;opacity:.95;
+    content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
     background:
-      radial-gradient(ellipse at 50% 12%,rgba(67,143,210,.16),transparent 44%),
-      radial-gradient(ellipse at 5% 60%,rgba(53,193,198,.09),transparent 45%),
-      radial-gradient(ellipse at 95% 88%,rgba(109,104,230,.12),transparent 42%);
+      radial-gradient(ellipse at 12% 12%,rgba(95,221,239,.36),transparent 38%),
+      radial-gradient(ellipse at 94% 40%,rgba(117,197,255,.27),transparent 42%),
+      radial-gradient(ellipse at 28% 92%,rgba(69,225,210,.22),transparent 42%);
   }
   .nav[aria-label="Main navigation"]:after{
-    content:"";position:absolute;z-index:-1;pointer-events:none;left:-35%;right:-35%;top:-55%;
-    height:72%;opacity:.6;transform:rotate(-18deg);
+    content:"";position:absolute;z-index:-1;pointer-events:none;left:-48%;right:-48%;top:-40%;
+    height:185%;opacity:.86;
     background:
-      linear-gradient(180deg,transparent 0%,rgba(95,188,255,0) 35%,rgba(95,188,255,.06) 43%,rgba(120,224,240,.22) 49%,rgba(137,152,255,.10) 53%,transparent 66%),
-      repeating-linear-gradient(112deg,transparent 0 42px,rgba(114,185,245,.07) 43px,transparent 44px 84px);
-    filter:blur(.2px);animation:psnPremiumFlow 12s cubic-bezier(.45,0,.55,1) infinite;
+      radial-gradient(ellipse at 50% 48%,rgba(255,255,255,.42),transparent 42%),
+      repeating-linear-gradient(164deg,transparent 0 31px,rgba(37,174,206,.09) 32px,rgba(255,255,255,.46) 34px,transparent 36px 67px),
+      linear-gradient(115deg,transparent 26%,rgba(255,255,255,.72) 44%,rgba(76,210,221,.19) 49%,rgba(255,255,255,.56) 53%,transparent 70%);
+    filter:blur(.25px);
+    transform:translate3d(-10%,-4%,0) rotate(-12deg);
+    animation:psnWaterRibbon 14s cubic-bezier(.42,0,.58,1) infinite;
   }
-  @keyframes psnPremiumFlow{
-    0%{transform:translate3d(-2%,-5%,0) rotate(-18deg);opacity:.28}
-    50%{transform:translate3d(3%,92%,0) rotate(-18deg);opacity:.72}
-    100%{transform:translate3d(-2%,190%,0) rotate(-18deg);opacity:.28}
+  @keyframes psnWaterRibbon{
+    0%{transform:translate3d(-10%,-4%,0) rotate(-12deg);background-position:0 0,0 0,0 0}
+    50%{transform:translate3d(8%,2%,0) rotate(-8deg);background-position:0 70px,0 95px,0 0}
+    100%{transform:translate3d(-10%,-4%,0) rotate(-12deg);background-position:0 140px,0 190px,0 0}
   }
   .nav[aria-label="Main navigation"] button{
     position:relative;z-index:1;flex:0 0 auto;width:100%;min-height:47px;text-align:left;
-    display:flex;align-items:center;padding:12px 14px;border:1px solid transparent;border-radius:13px;
-    background:rgba(13,27,47,.38);color:#b9c8df;font-size:13px;letter-spacing:.1px;
-    transition:background .24s,border-color .24s,color .24s,transform .24s,box-shadow .24s;
+    display:flex;align-items:center;padding:12px 14px;border:1px solid rgba(75,157,181,.10);border-radius:14px;
+    background:rgba(255,255,255,.45);color:#31566c;font-size:13px;letter-spacing:.12px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.64);
+    transition:background .28s,border-color .28s,color .28s,transform .28s,box-shadow .28s;
   }
   .nav[aria-label="Main navigation"] button:hover{
-    background:rgba(57,92,132,.28);border-color:rgba(123,203,237,.22);color:#f4fbff;transform:translateX(2px);
+    background:rgba(255,255,255,.88);border-color:rgba(38,166,194,.38);color:#123c54;
+    transform:translateX(3px);box-shadow:0 7px 18px rgba(34,139,164,.10),inset 0 1px 0 #fff;
   }
   .nav[aria-label="Main navigation"] button.active{
-    color:#f0ffff;background:linear-gradient(105deg,rgba(38,154,174,.22),rgba(86,104,177,.19));
-    border-color:rgba(113,205,224,.28);box-shadow:inset 2px 0 0 rgba(111,235,225,.9),inset 0 1px 0 rgba(255,255,255,.035);
+    color:#073b50;background:linear-gradient(105deg,rgba(115,234,223,.68),rgba(157,220,255,.72) 58%,rgba(255,255,255,.82));
+    border-color:rgba(46,174,194,.48);box-shadow:inset 3px 0 0 #18b7c6,0 8px 22px rgba(43,167,190,.16),inset 0 1px 0 rgba(255,255,255,.95);
   }
   .nav[aria-label="Main navigation"] button.active:after{
-    content:"";width:5px;height:5px;border-radius:50%;margin-left:auto;background:#9df7ed;
-    box-shadow:0 0 9px rgba(115,245,235,.75);animation:psnPremiumBreath 3.4s ease-in-out infinite;
+    content:"";width:6px;height:6px;border-radius:50%;margin-left:auto;
+    background:#08aebd;box-shadow:0 0 0 4px rgba(8,174,189,.12),0 0 12px rgba(8,174,189,.48);
+    animation:psnWaterPulse 3.6s ease-in-out infinite;
   }
-  @keyframes psnPremiumBreath{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+  @keyframes psnWaterPulse{0%,100%{opacity:.65;transform:scale(.9)}50%{opacity:1;transform:scale(1.12)}}
   .nav[aria-label="Main navigation"] button#adminNav{margin-top:auto}
 }
 @media(max-width:950px){
