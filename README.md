@@ -40,6 +40,7 @@ Open http://127.0.0.1:8000 and http://127.0.0.1:8000/docs.
 - Network centrality depends on the threshold selected.
 - Quality checks identify formatting/range issues and do not verify clinical accuracy.
 - Cohort trends can be affected by visit schedules and cohort composition.
+- The Research Toolkit includes a patient-ID comparison control. Enter two to eight comma-separated numeric IDs to compare cognitive-domain ranges.
 - This is an educational research prototype, not a medical device; do not use it for diagnosis or treatment decisions.
 - Vercel's local filesystem is not durable storage. Configure a managed database before relying on persistent multi-user records.
 
