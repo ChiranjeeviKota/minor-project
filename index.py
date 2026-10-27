@@ -1008,6 +1008,10 @@ currentUser={name:'Guest',role:'analyst'};showApp();
 </script>
 </body></html>"""
 
+from psn_research import build_advanced_router, advanced_ui_script
+app.include_router(build_advanced_router(connect, all_patients, similarity, DOMAINS))
+HTML = HTML.replace("</body>", advanced_ui_script() + "</body>")
+
 @app.get("/", response_class=HTMLResponse)
 def home(): return HTML
 @app.get("/{full_path:path}", response_class=HTMLResponse)
