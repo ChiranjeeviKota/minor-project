@@ -412,6 +412,70 @@ button,.btn,select,input,textarea{font:inherit;border:1px solid #30415c;backgrou
 @media(max-width:950px){main{padding:18px 18px 100px}.hero{grid-template-columns:1fr .55fr;gap:12px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nav{position:relative;top:auto}.nav button{font-size:12px;padding:9px}}
 @media(max-width:650px){main{padding:12px 12px 100px}.brand-mark{width:40px;height:40px}.brand h1{font-size:17px}.hero{grid-template-columns:1fr;padding:25px 21px;border-radius:22px}.hero h2{font-size:35px}.hero p{font-size:14px}.hero-art{display:none}.hero-kpis{gap:7px}.hero-kpi strong{font-size:20px}.hero-kpi span{font-size:10px}.cards{gap:9px}.card{padding:15px;border-radius:16px}.card strong{font-size:27px}.two,.feature-grid{grid-template-columns:1fr}.patientgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.nav{display:none}.bottom-nav{position:fixed;z-index:50;bottom:10px;left:10px;right:10px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding:7px;background:#101a2bed;border:1px solid #34435d;border-radius:18px;box-shadow:0 14px 40px #0008;backdrop-filter:blur(20px)}.bottom-nav button{background:transparent;border:0;color:#aebbd0;padding:8px 2px;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}.bottom-nav button span{font-size:18px;line-height:1.2}.bottom-nav button.active{background:#d5fff0;color:#0b3026;border-radius:12px}.site-footer{flex-direction:column;align-items:flex-start}.section-heading{align-items:flex-start;flex-direction:column}.toolbar input{min-width:0}.admin-stats{grid-template-columns:1fr}.admin-hero{align-items:flex-start;flex-direction:column}.directory-head{align-items:flex-start;flex-direction:column}}
 @media(max-width:380px){.patientgrid{grid-template-columns:1fr}.hero h2{font-size:30px}.hero-kpi strong{font-size:18px}}
+
+/* Professional visual polish: layered research-grade background and calmer surfaces */
+:root{
+  --bg:#070d18;
+  --surface:#101a2b;
+  --surface2:#16243a;
+  --line:#2a3b55;
+  --muted:#aebbd0;
+  --text:#f4f7ff;
+  --mint:#91ead0;
+  --blue:#9bbcff;
+  --radius:18px
+}
+html{background:#070d18}
+body{
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(57,105,171,.22),transparent 36%),
+    radial-gradient(ellipse at 92% 16%,rgba(84,77,156,.16),transparent 32%),
+    radial-gradient(ellipse at 48% 100%,rgba(39,110,111,.10),transparent 42%),
+    linear-gradient(145deg,#070d18 0%,#0a1220 48%,#080e1a 100%);
+  background-attachment:fixed;
+}
+header{border-bottom-color:rgba(143,171,211,.18)}
+.nav{
+  background:rgba(12,21,36,.88);
+  border-color:rgba(139,164,202,.22);
+  box-shadow:0 16px 42px rgba(0,0,0,.22);
+}
+.hero{
+  background:
+    radial-gradient(ellipse at 92% 0%,rgba(121,151,255,.16),transparent 38%),
+    linear-gradient(118deg,rgba(22,42,68,.98),rgba(16,28,48,.98) 58%,rgba(27,27,56,.98));
+  border-color:rgba(139,171,216,.30);
+  box-shadow:0 28px 80px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.035);
+}
+.card,section{
+  background:linear-gradient(150deg,rgba(19,31,51,.96),rgba(12,21,36,.97));
+  border-color:rgba(132,158,197,.20);
+  box-shadow:0 12px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.025);
+}
+.feature-card{
+  background:linear-gradient(145deg,rgba(19,31,51,.92),rgba(14,24,41,.96));
+  border-color:rgba(132,158,197,.19);
+}
+.card-icon{background:linear-gradient(145deg,#243750,#1b2a42);border:1px solid rgba(151,182,226,.12)}
+button,.btn,select,input,textarea{
+  background-color:rgba(18,30,50,.94);
+  border-color:rgba(133,160,201,.30);
+}
+button:hover,.btn:hover{border-color:var(--mint);box-shadow:0 5px 18px rgba(145,234,208,.08)}
+.tablewrap{border-color:rgba(132,158,197,.22)}
+table{background:rgba(10,18,31,.78)}
+th{background:rgba(24,38,60,.95)}
+td,th{border-bottom-color:rgba(132,158,197,.15)}
+.site-footer{border-top-color:rgba(143,171,211,.18)}
+.bottom-nav{
+  background:rgba(13,23,39,.92);
+  border-color:rgba(139,164,202,.26);
+}
+@media(prefers-reduced-motion:no-preference){
+  .card,.feature-card,section{transition:border-color .2s ease,box-shadow .2s ease}
+  .card:hover,.feature-card:hover{border-color:rgba(145,234,208,.30);box-shadow:0 16px 36px rgba(0,0,0,.19)}
+}
+
 </style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>Patient Similarity Network — Research Summary</h1><p>Generated """+date.today().isoformat()+""" · Synthetic demo records</p><div class="grid"><div class="card">Total records<br><b>"""+str(st["total"])+"""</b></div><div class="card">Healthy cohort<br><b>"""+str(st["healthy"])+"""</b></div><div class="card">MCI cohort<br><b>"""+str(st["mci"])+"""</b></div><div class="card">Alzheimer’s cohort<br><b>"""+str(st["alzheimers"])+"""</b></div><div class="card">Mean MMSE<br><b>"""+str(st["mean_mmse"])+"""/30</b></div><div class="card">Network edges ≥85%<br><b>"""+str(gf["edges"])+"""</b></div></div><h2>Exploratory clustering evaluation</h2><p>Silhouette score: """+str(ev.get("silhouette"))+""" · Records: """+str(ev.get("patients"))+"""</p><p>"""+str(ev.get("note",""))+"""</p><h2>Patient summary</h2><table><thead><tr><th>Patient code</th><th>Cohort label</th><th>MMSE</th><th>MoCA</th></tr></thead><tbody>"""+rows+"""</tbody></table><p class="note"><b>Important:</b> Academic research prototype. Records are synthetic by default; metrics are exploratory and not clinically validated. Not a diagnosis and must not guide treatment decisions.</p></body></html>""")
     return HTMLResponse(html)
 
