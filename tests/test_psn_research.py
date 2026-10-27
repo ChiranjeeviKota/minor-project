@@ -109,12 +109,12 @@ class NetworkTests(unittest.TestCase):
         rows = [patient(1, "A", base=60), patient(2, "B", base=60), patient(3, "C", base=10)]
         result = network_metrics(rows, similarity, 90)
         self.assertEqual(result["nodes"], 3)
-        self.assertEqual(result["edges"], 1)
+        self.assertEqual(result["edge_count"], 1)
         self.assertAlmostEqual(result["density"], 1 / 3, places=4)
     def test_empty_network(self):
         result = network_metrics([], similarity, 85)
         self.assertEqual(result["nodes"], 0)
-        self.assertEqual(result["edges"], 0)
+        self.assertEqual(result["edge_count"], 0)
         self.assertEqual(result["density"], 0)
     def test_isolated_nodes_are_components(self):
         rows = [patient(1, "A", base=10), patient(2, "B", base=10), patient(3, "C", base=90)]
