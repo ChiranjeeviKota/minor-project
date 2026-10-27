@@ -658,7 +658,7 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
 @media(max-width:700px){#overview .brain-visual{min-height:270px}#overview .brain-svg{width:118%}}
 @media(prefers-reduced-motion:reduce){#overview .brain-svg,#overview .brain-svg g path,#overview .brain-svg circle,#overview .brain-orbit,#overview .brain-visual:before{animation:none!important}}
 
-/* Premium cool-water sidebar with subtle flowing water; no neural footer */
+/* Premium living-water sidebar: layered cool currents, soft caustic light, no neural footer */
 @media(min-width:951px){
   main{max-width:none;margin:0;padding:24px 34px 110px 286px}
   header{min-height:70px}
@@ -666,54 +666,62 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
     position:fixed;z-index:80;left:16px;top:16px;bottom:16px;width:238px;
     display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
     gap:8px;padding:20px 13px 18px;overflow:hidden;isolation:isolate;
-    border:1px solid rgba(119,184,207,.27);border-radius:25px;
-    background:linear-gradient(155deg,rgba(18,32,49,.98),rgba(12,25,41,.98) 52%,rgba(15,30,47,.99));
-    box-shadow:0 24px 68px rgba(0,0,0,.26),inset 0 1px 0 rgba(226,245,255,.08),inset 0 0 32px rgba(67,153,183,.07);
+    border:1px solid rgba(137,205,219,.25);border-radius:25px;
+    background:linear-gradient(150deg,#122638 0%,#0d1e30 38%,#102b3b 70%,#0c1c2d 100%);
+    box-shadow:0 24px 68px rgba(0,0,0,.28),inset 0 1px 0 rgba(230,250,255,.10),inset 0 0 38px rgba(65,166,190,.09);
   }
   .nav[aria-label="Main navigation"]:before{
     content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
     background:
-      radial-gradient(ellipse at 50% 0%,rgba(73,151,187,.15),transparent 42%),
-      radial-gradient(ellipse at 8% 55%,rgba(49,156,171,.08),transparent 42%),
-      radial-gradient(ellipse at 55% 100%,rgba(51,170,183,.08),transparent 39%);
+      radial-gradient(ellipse at 10% 12%,rgba(95,174,205,.17),transparent 38%),
+      radial-gradient(ellipse at 95% 43%,rgba(52,154,177,.15),transparent 40%),
+      radial-gradient(ellipse at 40% 95%,rgba(50,139,166,.13),transparent 42%),
+      linear-gradient(118deg,transparent 20%,rgba(150,225,235,.025) 43%,rgba(146,228,235,.08) 48%,transparent 57%);
+    background-size:100% 100%,100% 100%,100% 100%,220% 100%;
+    animation:psnWaterLight 18s ease-in-out infinite;
   }
   .nav[aria-label="Main navigation"]:after{
-    content:"";position:absolute;z-index:-1;pointer-events:none;inset:-12% -45%;
-    opacity:.62;
+    content:"";position:absolute;z-index:-1;pointer-events:none;inset:-16% -65%;
+    opacity:.76;
     background:
-      radial-gradient(ellipse at 25% 35%,rgba(77,183,204,.07),transparent 36%),
-      repeating-linear-gradient(164deg,transparent 0 32px,rgba(91,195,210,.045) 34px,rgba(177,231,237,.12) 36px,rgba(76,167,190,.045) 39px,transparent 43px 72px),
-      linear-gradient(112deg,transparent 30%,rgba(86,192,208,.035) 42%,rgba(124,222,230,.11) 49%,rgba(73,170,196,.035) 56%,transparent 68%);
-    filter:blur(.35px);
-    transform:translate3d(-7%,1%,0) skewY(-5deg);
-    animation:psnWaterFlow 16s ease-in-out infinite;
+      radial-gradient(ellipse at 30% 40%,rgba(85,201,218,.13),transparent 32%),
+      radial-gradient(ellipse at 72% 58%,rgba(65,153,190,.13),transparent 36%),
+      repeating-linear-gradient(168deg,transparent 0 26px,rgba(93,201,217,.025) 28px,rgba(177,238,242,.15) 30px,rgba(84,179,202,.055) 33px,transparent 36px 60px),
+      repeating-linear-gradient(12deg,transparent 0 47px,rgba(111,215,225,.045) 49px,transparent 52px 83px);
+    filter:blur(.3px);
+    transform:translate3d(-8%,0,0) skewY(-7deg);
+    animation:psnLivingWater 13s cubic-bezier(.42,0,.58,1) infinite;
   }
-  @keyframes psnWaterFlow{
-    0%{transform:translate3d(-7%,1%,0) skewY(-5deg);background-position:0 0,0 0,0 0;opacity:.42}
-    50%{transform:translate3d(5%,-1%,0) skewY(3deg);background-position:0 0,0 55px,30px 0;opacity:.72}
-    100%{transform:translate3d(-7%,1%,0) skewY(-5deg);background-position:0 0,0 110px,0 0;opacity:.42}
+  @keyframes psnWaterLight{
+    0%,100%{background-position:0 0,0 0,0 0,100% 0;filter:brightness(.92)}
+    50%{background-position:0 0,0 0,0 0,0 0;filter:brightness(1.12)}
+  }
+  @keyframes psnLivingWater{
+    0%{transform:translate3d(-8%,1%,0) skewY(-7deg);background-position:0 0,0 0,0 0,0 0;opacity:.48}
+    50%{transform:translate3d(5%,-1%,0) skewY(4deg);background-position:30px -20px,-20px 25px,0 68px,0 -42px;opacity:.88}
+    100%{transform:translate3d(-8%,1%,0) skewY(-7deg);background-position:0 0,0 0,0 136px,0 0;opacity:.48}
   }
   .nav[aria-label="Main navigation"] button{
     position:relative;z-index:1;flex:0 0 auto;width:100%;min-height:47px;text-align:left;
-    display:flex;align-items:center;padding:12px 14px;border:1px solid rgba(133,177,203,.08);border-radius:14px;
-    background:rgba(24,43,63,.60);color:#bdcede;font-size:13px;letter-spacing:.12px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
-    transition:background .28s,border-color .28s,color .28s,transform .28s,box-shadow .28s;
+    display:flex;align-items:center;padding:12px 14px;border:1px solid rgba(151,196,216,.10);border-radius:14px;
+    background:linear-gradient(110deg,rgba(26,48,67,.78),rgba(22,43,61,.62));color:#c4d6e3;font-size:13px;letter-spacing:.12px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+    transition:background .3s,border-color .3s,color .3s,transform .3s,box-shadow .3s;
   }
   .nav[aria-label="Main navigation"] button:hover{
-    background:rgba(48,83,105,.48);border-color:rgba(102,203,215,.22);color:#f0fbff;
-    transform:translateX(2px);box-shadow:0 6px 18px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.04);
+    background:linear-gradient(110deg,rgba(49,91,111,.72),rgba(31,76,95,.66));border-color:rgba(130,222,229,.34);color:#f0fdff;
+    transform:translateX(3px);box-shadow:0 7px 22px rgba(0,0,0,.14),inset 0 1px 0 rgba(225,253,255,.07);
   }
   .nav[aria-label="Main navigation"] button.active{
-    color:#e6fbff;background:linear-gradient(105deg,rgba(43,145,160,.26),rgba(64,119,155,.24) 58%,rgba(52,79,111,.34));
-    border-color:rgba(107,208,219,.26);box-shadow:inset 2px 0 0 rgba(113,224,224,.9),0 7px 20px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.035);
+    color:#eaffff;background:linear-gradient(105deg,rgba(40,133,150,.38),rgba(47,104,139,.34) 58%,rgba(40,75,103,.48));
+    border-color:rgba(124,225,229,.39);box-shadow:inset 2px 0 0 #83e1e1,0 8px 24px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.06);
   }
   .nav[aria-label="Main navigation"] button.active:after{
     content:"";width:5px;height:5px;border-radius:50%;margin-left:auto;
-    background:#83dfe0;box-shadow:0 0 9px rgba(110,225,225,.56);
+    background:#a0eeee;box-shadow:0 0 11px rgba(110,231,232,.72);
     animation:psnCurrentPulse 3.8s ease-in-out infinite;
   }
-  @keyframes psnCurrentPulse{0%,100%{opacity:.5;transform:scale(.88)}50%{opacity:1;transform:scale(1.1)}}
+  @keyframes psnCurrentPulse{0%,100%{opacity:.55;transform:scale(.88)}50%{opacity:1;transform:scale(1.18)}}
   .nav[aria-label="Main navigation"] button#adminNav{margin-top:auto}
 }
 @media(max-width:950px){
@@ -721,7 +729,7 @@ body.psn-home-active:before{content:"";position:fixed;inset:0;pointer-events:non
   main{padding-left:18px!important}
 }
 @media(prefers-reduced-motion:reduce){
-  .nav[aria-label="Main navigation"]:after,.nav[aria-label="Main navigation"] button.active:after{animation:none!important}
+  .nav[aria-label="Main navigation"]:before,.nav[aria-label="Main navigation"]:after,.nav[aria-label="Main navigation"] button.active:after{animation:none!important}
 }
 </style></head><body><div id="authScreen" style="display:none;align-items:center;justify-content:center;padding:18px;overflow:auto"><section style="width:min(440px,100%);margin:auto"><div style="font-size:12px;letter-spacing:2px;color:var(--mint);font-weight:700">PSN RESEARCH HUB</div><h1 id="authTitle" style="margin:8px 0 4px">Welcome to PSN</h1><p id="authSubtitle" class="muted">Sign in to your Study Analyst Workspace.</p><div class="nav"><button id="loginMode" class="primary" type="button" onclick="authMode('login')">Sign in</button><button id="registerMode" type="button" onclick="authMode('register')">Create account</button></div><form id="authForm" onsubmit="submitAuth(event)"><label id="nameWrap" class="hidden">Full name<br><input name="name" minlength="2" maxlength="80" autocomplete="name" style="width:100%;margin:6px 0 12px"></label><label>Email<br><input name="email" type="email" required autocomplete="email" style="width:100%;margin:6px 0 12px"></label><label>Password<br><input name="password" type="password" minlength="10" required autocomplete="current-password" style="width:100%;margin:6px 0 12px"></label><button id="authSubmit" class="primary" type="submit" style="width:100%">Sign in</button><p id="authMessage" class="muted" role="status"></p></form><p id="adminBackLink" class="hidden" style="text-align:center;margin:14px 0 0"><a href="/" style="color:var(--blue)">← Back to PSN Research Hub</a></p><small>Use only synthetic demo records. Do not upload real patient data to this prototype.</small></section></div><main id="appShell" style="display:block"><header><div class="brand"><div class="brand-mark" aria-hidden="true">✳</div><div><h1>Patient Similarity Network</h1><p>Cognitive insights · Patient profile analytics</p></div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span id="signedInAs" class="muted"></span><button id="adminButton" class="hidden" onclick="tab('admin')">Admin Console</button><button onclick="logout()">Sign out</button></div></header><nav class="nav" aria-label="Main navigation"><button class="active" data-tab="overview">⌂ &nbsp; Home</button><button data-tab="network">◎ &nbsp; Patient Network</button><button data-tab="patients">♙ &nbsp; Patient Explorer</button><button data-tab="analytics">◈ &nbsp; Analytics</button><button data-tab="longitudinal">↗ &nbsp; Follow-ups</button><button data-tab="research">▤ &nbsp; Research Lab</button><button data-tab="mmse-moca">＋ &nbsp; Assessments</button><button id="adminNav" class="hidden" data-tab="admin">Admin Console</button></nav><div id="error" class="notice hidden"></div><div id="admin" class="hidden"><section class="admin-hero"><div><div class="eyebrow">CONTROL CENTER / ACCESS MANAGEMENT</div><h2>PSN Admin Console</h2><p class="muted">Manage accounts, review roles, and control access to the research workspace.</p></div><div class="admin-hero-actions"><span class="secure-chip">● Admin session</span><button class="primary" onclick="loadAdminUsers()">↻ Refresh</button></div></section><div id="adminSummary" class="admin-stats"></div><section class="admin-directory"><div class="directory-head"><div><h2>Account directory</h2><p class="muted">Search registered users and update their access level.</p></div><span id="adminCountLabel" class="count-pill">Loading…</span></div><div class="toolbar admin-tools"><input id="adminSearch" type="search" placeholder="Search name, email, or role…" oninput="loadAdminUsers()" aria-label="Search accounts"></div><div id="adminUsers" class="admin-users"><p class="muted">Loading accounts…</p></div></section><p class="admin-footnote">Security note: keep administrator access limited to trusted project maintainers. Demo data only; this console is not for real patient records.</p></div><div id="overview"><section class="hero"><div><div class="eyebrow">Cognitive analytics workspace</div><h2>Understand the connections behind cognitive profiles.</h2><p>Explore patient similarity, compare cognitive domains, follow score changes over time, and turn structured assessments into clear research insights.</p><div class="hero-actions"><button class="primary" onclick="tab('network')">Explore the network &nbsp; ↗</button><button onclick="tab('patients')">Open patient explorer</button></div><div class="hero-kpis"><div class="hero-kpi"><strong id="heroTotal">—</strong><span>Patient profiles</span></div><div class="hero-kpi"><strong id="heroCohorts">3</strong><span>Cohort categories</span></div><div class="hero-kpi"><strong>7</strong><span>Cognitive domains</span></div></div></div><div class="hero-art" aria-hidden="true"><svg class="network-art" viewBox="0 0 340 270"><defs><linearGradient id="nodeGlow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8ce6c6"/><stop offset="1" stop-color="#9db6ff"/></linearGradient></defs><g stroke="#91aeea" stroke-opacity=".42" stroke-width="1.6"><path d="M50 60 125 35 195 68 270 40 300 105 245 160 285 220 190 235 125 190 50 210 30 130 50 60 125 35 125 190 195 68 190 235 245 160 125 35 270 40 245 160 300 105 195 68 285 220 50 210 125 190 30 130 195 68"/></g><g fill="url(#nodeGlow)"><circle cx="50" cy="60" r="9"/><circle cx="125" cy="35" r="7"/><circle cx="195" cy="68" r="12"/><circle cx="270" cy="40" r="8"/><circle cx="300" cy="105" r="10"/><circle cx="245" cy="160" r="14"/><circle cx="285" cy="220" r="7"/><circle cx="190" cy="235" r="10"/><circle cx="125" cy="190" r="12"/><circle cx="50" cy="210" r="8"/><circle cx="30" cy="130" r="11"/></g><g fill="#eaf4ff" fill-opacity=".9"><circle cx="160" cy="125" r="20"/><circle cx="160" cy="125" r="29" fill="none" stroke="#8ce6c6" stroke-opacity=".55"/></g></svg></div></section>
 <section class="brain-network-feature"><div class="brain-network-copy"><span class="brain-eyebrow">COGNITIVE ANALYSIS WORKSPACE</span><h2>Brain Network</h2><p>Explore connected cognitive regions through a glowing neural network visualization.</p><div class="brain-tags"><span><i></i> Neural connections</span><span><i></i> Cognitive patterns</span></div><div class="brain-tags"><span><i></i> Similarity analysis</span><span><i></i> K-means clustering</span><span><i></i> Graph metrics</span></div><div class="hero-actions" style="margin-top:18px"><button class="primary" onclick="tab('analytics')">Open Cognitive Analysis →</button><button onclick="tab('network')">Explore Patient Network</button></div></div><div class="brain-visual" role="img" aria-label="Glowing blue and violet brain neural network illustration"><div class="brain-orbit orbit-one"></div><div class="brain-orbit orbit-two"></div><svg class="brain-svg" viewBox="0 0 560 360" aria-hidden="true"><defs><radialGradient id="brainCore"><stop offset="0" stop-color="#2ce8ff" stop-opacity=".38"/><stop offset=".65" stop-color="#1678ff" stop-opacity=".14"/><stop offset="1" stop-color="#06142d" stop-opacity="0"/></radialGradient><linearGradient id="cortex" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#37efff"/><stop offset=".42" stop-color="#248cff"/><stop offset=".72" stop-color="#6367ff"/><stop offset="1" stop-color="#e27cff"/></linearGradient><filter id="cortexGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="blur"/><feColorMatrix in="blur" type="matrix" values="0 0 0 0 .05 0 0 0 0 .48 0 0 0 0 1 0 0 0 .9 0" result="blueblur"/><feMerge><feMergeNode in="blueblur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="nodeHalo"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><ellipse cx="280" cy="178" rx="250" ry="165" fill="url(#brainCore)"/><g fill="none" stroke="url(#cortex)" stroke-linecap="round" stroke-linejoin="round" filter="url(#cortexGlow)"><path stroke-width="3.2" d="M278 67 C263 42 229 28 199 39 C179 21 147 36 138 57 C106 54 82 79 88 106 C60 126 69 158 88 174 C71 198 90 224 113 230 C114 258 145 275 169 262 C191 285 219 274 237 258 C253 268 269 251 278 235"/><path stroke-width="3.2" d="M282 67 C297 42 331 28 361 39 C381 21 413 36 422 57 C454 54 478 79 472 106 C500 126 491 158 472 174 C489 198 470 224 447 230 C446 258 415 275 391 262 C369 285 341 274 323 258 C307 268 291 251 282 235"/><path stroke-width="2.3" d="M278 68 C253 60 236 75 240 94 C216 102 215 124 231 137 C208 152 218 177 238 184 C224 203 239 222 258 220 L278 235 M282 68 C307 60 324 75 320 94 C344 102 345 124 329 137 C352 152 342 177 322 184 C336 203 321 222 302 220 L282 235"/><path stroke-width="2" d="M139 58 C157 64 166 78 157 94 C141 109 151 124 172 125 C185 139 176 155 159 162 C144 176 154 194 174 197 C186 211 176 229 165 239 M199 40 C194 58 208 70 224 70 C241 77 240 91 227 102 M91 107 C111 112 120 128 110 144 C103 157 113 169 130 169 M113 230 C130 221 143 225 150 240 M169 262 C177 246 197 243 210 255 M421 58 C403 64 394 78 403 94 C419 109 409 124 388 125 C375 139 384 155 401 162 C416 176 406 194 386 197 C374 211 384 229 395 239 M361 40 C366 58 352 70 336 70 C319 77 320 91 333 102 M469 107 C449 112 440 128 450 144 C457 157 447 169 430 169 M447 230 C430 221 417 225 410 240 M391 262 C383 246 363 243 350 255"/><path stroke-width="1.5" opacity=".85" d="M278 67 L282 235 M157 94 L190 105 L227 102 L240 94 M172 125 L204 137 L231 137 M159 162 L197 173 L238 184 M174 197 L208 207 L258 220 M165 239 L198 229 L237 258 M403 94 L370 105 L333 102 M388 125 L356 137 L329 137 M401 162 L363 173 L322 184 M386 197 L352 207 L302 220 M395 239 L362 229 L323 258"/></g><g fill="none" stroke="#54dfff" stroke-width="1.15" opacity=".7"><path d="M68 88 L88 106 L110 144 L130 169 L113 230 L150 240 L169 262 L210 255 L237 258 L278 235"/><path d="M492 88 L472 106 L450 144 L430 169 L447 230 L410 240 L391 262 L350 255 L323 258 L282 235"/><path d="M105 65 L138 57 L157 94 L190 105 L204 137 L197 173 L208 207 L198 229 L210 255"/><path d="M455 65 L422 57 L403 94 L370 105 L356 137 L363 173 L352 207 L362 229 L350 255"/><path d="M199 40 L224 70 L227 102 L204 137 L197 173 M361 40 L336 70 L333 102 L356 137 L363 173"/></g><g fill="#b8f7ff" filter="url(#nodeHalo)"><circle cx="138" cy="57" r="4"/><circle cx="157" cy="94" r="4"/><circle cx="190" cy="105" r="4.5"/><circle cx="172" cy="125" r="4"/><circle cx="204" cy="137" r="5"/><circle cx="159" cy="162" r="4"/><circle cx="197" cy="173" r="4.5"/><circle cx="174" cy="197" r="4"/><circle cx="208" cy="207" r="4"/><circle cx="165" cy="239" r="4"/><circle cx="198" cy="229" r="4"/><circle cx="210" cy="255" r="4"/><circle cx="240" cy="94" r="5"/><circle cx="231" cy="137" r="4.5"/><circle cx="238" cy="184" r="5"/><circle cx="258" cy="220" r="4"/><circle cx="278" cy="67" r="5"/><circle cx="278" cy="235" r="5"/><circle cx="422" cy="57" r="4"/><circle cx="403" cy="94" r="4"/><circle cx="370" cy="105" r="4.5"/><circle cx="388" cy="125" r="4"/><circle cx="356" cy="137" r="5"/><circle cx="401" cy="162" r="4"/><circle cx="363" cy="173" r="4.5"/><circle cx="386" cy="197" r="4"/><circle cx="352" cy="207" r="4"/><circle cx="395" cy="239" r="4"/><circle cx="362" cy="229" r="4"/><circle cx="350" cy="255" r="4"/><circle cx="320" cy="94" r="5"/><circle cx="329" cy="137" r="4.5"/><circle cx="322" cy="184" r="5"/><circle cx="302" cy="220" r="4"/></g><g fill="#dcaaff" filter="url(#nodeHalo)"><circle cx="88" cy="106" r="3"/><circle cx="110" cy="144" r="3"/><circle cx="130" cy="169" r="3.5"/><circle cx="113" cy="230" r="3"/><circle cx="169" cy="262" r="3"/><circle cx="224" cy="70" r="3"/><circle cx="227" cy="102" r="3"/><circle cx="455" cy="65" r="3"/><circle cx="472" cy="106" r="3"/><circle cx="450" cy="144" r="3"/><circle cx="430" cy="169" r="3.5"/><circle cx="447" cy="230" r="3"/><circle cx="391" cy="262" r="3"/><circle cx="336" cy="70" r="3"/><circle cx="333" cy="102" r="3"/></g><g fill="none" stroke="#52cfff" stroke-width="1" opacity=".34"><path d="M80 140 Q280 15 480 140"/><path d="M90 212 Q280 330 470 212"/><path d="M122 43 Q280 0 438 43"/><path d="M122 280 Q280 320 438 280"/></g></svg><div class="brain-caption"><span class="pulse-dot"></span> Neural activity map <span class="caption-divider">/</span> <span>Illustrative visualization</span></div></div></section>
