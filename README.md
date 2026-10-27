@@ -46,3 +46,14 @@ Open http://127.0.0.1:8000 and http://127.0.0.1:8000/docs.
 
 ## Deployment checklist
 After a deployment is READY, verify /api/health, each research endpoint, Research Toolkit buttons, JSON/CSV downloads, patient search, network rendering, assessment saving, follow-up history, and the existing report. Build status alone does not prove every interaction works.
+
+
+## Research Toolkit v2 additions
+- **Filtered patient explorer API:** `GET /api/research/patients` supports query, cohort, age/score bounds, safe sort fields and pagination.
+- **Domain correlation matrix:** `GET /api/research/correlations` reports Pearson coefficients and sample counts; constant or insufficient samples return null.
+- **Score distributions:** `GET /api/research/distributions?bin_width=20` returns configurable score histograms.
+- **Statistical outlier screen:** `GET /api/research/outliers` uses the 1.5-IQR rule and explicitly treats results as flags for review, not clinical findings.
+- **Similarity path finder:** `GET /api/research/path?source_id=1&target_id=2&threshold=85` finds the shortest path in the thresholded similarity graph.
+- **CSV safety preview:** `POST /api/research/csv-preview` accepts JSON `{"csv_text":"..." }`, validates up to 500 rows, and never writes to the database.
+- **Filtered CSV export:** `GET /api/research/export.csv` downloads the currently filtered subset (up to 200 records).
+- The Research Toolkit UI now surfaces correlation, distribution, outlier and CSV preview actions.
