@@ -68,7 +68,12 @@ def init_auth_db():
         if admin_email and admin_password:
             existing = db.execute("SELECT id FROM psn_users WHERE email=?", (admin_email,)).fetchone()
             if existing:
-                db.execute("UPDATE psn_users SET role='admin', active=1 WHERE email=?", (admin_email,))
+                # Treat the configured Vercel admin credentials as the source of truth.
+                # This repairs stale password hashes when PSN_ADMIN_PASSWORD is rotated.
+                db.execute(
+                    "UPDATE psn_users SET role='admin', active=1, password_hash=? WHERE email=?",
+                    (hash_password(admin_password), admin_email)
+                )
             else:
                 mobile = os.getenv("PSN_ADMIN_MOBILE", "+910000000000").strip()
                 db.execute(
