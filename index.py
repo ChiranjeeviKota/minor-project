@@ -1008,6 +1008,9 @@ currentUser={name:'Guest',role:'analyst'};showApp();
 </script>
 </body></html>"""
 
+from psn_auth import router as auth_router
+app.include_router(auth_router)
+
 from psn_research import build_advanced_router, advanced_ui_script
 app.include_router(build_advanced_router(connect, all_patients, similarity, DOMAINS))
 HTML = HTML.replace("</body>", advanced_ui_script() + "</body>")

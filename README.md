@@ -57,3 +57,28 @@ After a deployment is READY, verify /api/health, each research endpoint, Researc
 - **CSV safety preview:** `POST /api/research/csv-preview` accepts JSON `{"csv_text":"..." }`, validates up to 500 rows, and never writes to the database.
 - **Filtered CSV export:** `GET /api/research/export.csv` downloads the currently filtered subset (up to 200 records).
 - The Research Toolkit UI now surfaces correlation, distribution, outlier and CSV preview actions.
+
+
+## Account portals and role-based access
+
+The account routes are separate from the public home page:
+- `/admin`: administrator sign-in and protected admin console.
+- `/register`: create a standard user account.
+- `/login`: user sign-in.
+- `/dashboard`: signed-in user's workspace.
+- `/forgot-password`: mobile-number OTP recovery demo.
+
+### Required environment configuration
+
+Configure these in the hosting provider's environment settings:
+- `PSN_ADMIN_EMAIL`: initial administrator email.
+- `PSN_ADMIN_PASSWORD`: strong initial administrator password (never commit it).
+- `PSN_SESSION_SECRET`: long, random secret used to sign OTP digests.
+- `PSN_DEMO_OTP=true`: enables demo recovery codes for presentations/local testing. The code is shown in the response/UI and **does not send an SMS**. Leave this disabled for production.
+- `PSN_ADMIN_MOBILE` (optional): administrator mobile number in international format; default placeholder is for demo use only.
+
+Passwords are salted PBKDF2-HMAC-SHA256 hashes; session identifiers are stored as hashes in an HttpOnly cookie-backed session table; user routes and admin APIs check roles server-side. Admin accounts are provisioned from environment variables and are not created through public registration.
+
+### Important deployment limitation
+
+The current auth store uses SQLite, matching the existing application. Local development persists to `psn.db`, but Vercel's `/tmp` filesystem is ephemeral and cannot serve as a durable production user database. Before relying on registered accounts in production, migrate these auth tables to a managed persistent database (for example, the MongoDB Atlas setup you selected) and wire a real SMS provider for OTP delivery. Do not treat demo OTP as identity verification. User dashboard metrics are currently honest placeholders until existing assessments, follow-ups, and saved analyses are linked to account ownership.
