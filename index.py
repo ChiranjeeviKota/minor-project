@@ -352,6 +352,11 @@ async def import_csv(file:UploadFile=File(...)):
         try:
             data={"patient_code":row["patient_code"].strip(),"age":int(row["age"]),"sex":row.get("sex","Unknown"),"diagnosis":row.get("diagnosis","MCI"),"mmse":float(row["mmse"]),"moca":float(row["moca"]),"visit":1,"visit_date":date.today().isoformat()}
             data.update({d:float(row[d]) for d in DOMAINS})
+            if not data["patient_code"] or not 18 <= data["age"] <= 120: continue
+            if data["sex"] not in ("Female","Male","Unknown") or data["diagnosis"] not in ("Healthy","MCI","Alzheimer's"): continue
+            if not 0 <= data["mmse"] <= 30 or not 0 <= data["moca"] <= 30: continue
+            if any(not math.isfinite(data[d]) or not 0 <= data[d] <= 100 for d in DOMAINS): continue
+            if not math.isfinite(data["mmse"]) or not math.isfinite(data["moca"]): continue
             cols=list(data); db.execute(f"INSERT INTO patients ({','.join(cols)}) VALUES ({','.join('?' for _ in cols)})",[data[k] for k in cols]); added+=1
         except (KeyError,ValueError,sqlite3.IntegrityError): continue
     db.commit(); db.close()
