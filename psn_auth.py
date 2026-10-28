@@ -379,15 +379,24 @@ function registerPage(){
 }
 function forgotPage(){
  authCard('Reset your password','Verify your registered mobile number, then choose a new password.',
- field('mobile','Mobile number','tel','+919876543210','pattern="\\+[0-9]{10,15}"')+
+ field('mobile','Mobile number','tel','+919876543210','pattern="\\\\+[0-9]{10,15}"')+
  '<button id="requestOtp" class="btn secondary" type="button" style="width:100%">Generate demo OTP</button>'+
  '<div id="otpzone" class="hidden">'+field('otp','6-digit verification code','text','123456','inputmode="numeric" pattern="[0-9]{6}" maxlength="6"')+
  field('new_password','New password','password','At least 10 characters','minlength="10"')+'</div>',
  'Verify and reset','Remembered it? <a href="/login">Back to sign in</a>',
  async v=>{await api('/api/auth/forgot/reset',{method:'POST',body:JSON.stringify(v)});shell('<section class="auth-card"><h1>Password updated</h1><p class="muted">Your password was reset. Please sign in again.</p><a class="btn" href="/login">Go to sign in</a></section>')});
- document.getElementById('authform').querySelector('button[type=submit]').classList.add('hidden');
- document.getElementById('requestOtp').addEventListener('click',async()=>{try{const mobile=document.getElementById('mobile').value;const d=await api('/api/auth/forgot/request',{method:'POST',body:JSON.stringify({mobile})});message(d.message);if(d.demo_otp)message(d.message+' Demo OTP: '+d.demo_otp);document.getElementById('otpzone').classList.remove('hidden');document.getElementById('authform').querySelector('button[type=submit]').classList.remove('hidden');document.getElementById('authform').querySelector('button[type=submit]').textContent='Reset password'}catch(err){message(err.message,true)}});
-shell('<section class="auth-card"><h1>Password updated</h1><p class="muted">Your password was reset. Please sign in again.</p><a class="btn" href="/login">Go to sign in</a></section>')}catch(err){message(err.message,true)}});
+ const form=document.getElementById('authform');
+ const submitButton=form.querySelector('button[type=submit]');
+ submitButton.classList.add('hidden');
+ document.getElementById('requestOtp').addEventListener('click',async()=>{
+   try {
+     const mobile=document.getElementById('mobile').value;
+     const d=await api('/api/auth/forgot/request',{method:'POST',body:JSON.stringify({mobile})});
+     if(d.demo_otp) message(d.message+' Demo OTP: '+d.demo_otp); else message(d.message);
+     document.getElementById('otpzone').classList.remove('hidden');
+     submitButton.classList.remove('hidden');
+   } catch(err) { message(err.message,true); }
+ });
 }
 async function dashboardPage(){
  try{
