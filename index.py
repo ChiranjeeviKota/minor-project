@@ -5,15 +5,17 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 import sqlite3, os, csv, io, random, math
-from datetime import date
+from datetime import date, datetime
 
 DB_PATH = os.getenv("DATABASE_PATH", "/tmp/psn.db" if os.getenv("VERCEL") else "psn.db")
 DOMAINS = ["memory", "attention", "executive", "language", "visuospatial", "processing_speed", "orientation"]
 app = FastAPI(title="Patient Similarity Network", version="2.0.0")
 
 def connect():
-    db = sqlite3.connect(DB_PATH)
+    db = sqlite3.connect(DB_PATH, timeout=15)
     db.row_factory = sqlite3.Row
+    db.execute("PRAGMA foreign_keys = ON")
+    db.execute("PRAGMA busy_timeout = 15000")
     return db
 
 def init_db():
@@ -215,6 +217,10 @@ def get_visits(pid:int):
     return {"patient_id":pid,"patient_code":patient["patient_code"],"visits":[dict(r) for r in rows]}
 @app.post("/api/patients/{pid}/visits")
 def add_visit(pid:int,v:VisitIn):
+    try:
+        datetime.strptime(v.visit_date, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        raise HTTPException(422, "visit_date must use YYYY-MM-DD format.")
     db=connect()
     if not db.execute("SELECT id FROM patients WHERE id=?",(pid,)).fetchone(): db.close(); raise HTTPException(404,"Patient not found")
     data=v.model_dump(); cols=["patient_id"]+list(data)
