@@ -30,7 +30,7 @@ SESSION_SECRET = os.getenv("PSN_SESSION_SECRET", "local-demo-change-this-secret"
 SESSION_COOKIE = "psn_session"
 OTP_TTL_SECONDS = 300
 SESSION_TTL_SECONDS = 43200
-DEMO_OTP = os.getenv("PSN_DEMO_OTP", "true").lower() == "true"
+DEMO_OTP = os.getenv("PSN_DEMO_OTP", "false" if os.getenv("VERCEL") else "true").lower() == "true"
 
 
 def db_connect():
@@ -387,7 +387,7 @@ function forgotPage(){
  async v=>{await api('/api/auth/forgot/reset',{method:'POST',body:JSON.stringify(v)});shell('<section class="auth-card"><h1>Password updated</h1><p class="muted">Your password was reset. Please sign in again.</p><a class="btn" href="/login">Go to sign in</a></section>')});
  document.getElementById('authform').querySelector('button[type=submit]').classList.add('hidden');
  document.getElementById('requestOtp').addEventListener('click',async()=>{try{const mobile=document.getElementById('mobile').value;const d=await api('/api/auth/forgot/request',{method:'POST',body:JSON.stringify({mobile})});message(d.message);if(d.demo_otp)message(d.message+' Demo OTP: '+d.demo_otp);document.getElementById('otpzone').classList.remove('hidden');document.getElementById('authform').querySelector('button[type=submit]').classList.remove('hidden');document.getElementById('authform').querySelector('button[type=submit]').textContent='Reset password'}catch(err){message(err.message,true)}});
- document.getElementById('authform').addEventListener('submit',async e=>{e.preventDefault();const v=Object.fromEntries(new FormData(e.target).entries());try{await api('/api/auth/forgot/reset',{method:'POST',body:JSON.stringify(v)});shell('<section class="auth-card"><h1>Password updated</h1><p class="muted">Your password was reset. Please sign in again.</p><a class="btn" href="/login">Go to sign in</a></section>')}catch(err){message(err.message,true)}});
+shell('<section class="auth-card"><h1>Password updated</h1><p class="muted">Your password was reset. Please sign in again.</p><a class="btn" href="/login">Go to sign in</a></section>')}catch(err){message(err.message,true)}});
 }
 async function dashboardPage(){
  try{
